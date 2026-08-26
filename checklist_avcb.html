@@ -17,7 +17,7 @@
     body{margin:0;background:radial-gradient(circle at 88% 2%,rgba(205,163,72,.16),transparent 28rem),var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     button,input,select{font:inherit} button{cursor:pointer} a{color:var(--green2)}
     .shell{width:min(1220px,calc(100% - 28px));margin:0 auto;padding:28px 0 50px}
-    header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:24px;align-items:end;margin-bottom:18px}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:18px;flex-wrap:wrap}
     .eyebrow{margin:0 0 8px;color:var(--green2);font-size:.76rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
     h1{margin:0;font:500 clamp(2.2rem,5vw,4.5rem)/.98 Georgia,"Times New Roman",serif;letter-spacing:-.045em}
     .subtitle{max-width:800px;margin:14px 0 0;color:var(--muted);line-height:1.55}
@@ -32,7 +32,7 @@
     .btn{min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);font-weight:780}.btn:hover{background:#f8f8f3;border-color:#babdb6}.btn-primary{background:var(--green);border-color:var(--green);color:#fff}.btn-primary:hover{background:var(--green2);border-color:var(--green2)}.btn-danger{color:var(--danger)}
     .file-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.file-status{margin-top:7px;text-align:right;font-size:.72rem;color:var(--muted)}.file-status.connected{color:var(--green2)}.file-status.warning{color:var(--warning)}
     .classification-result{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.9fr);gap:18px}
-    .result-title{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 7px;font:600 1.25rem/1.25 Georgia,serif}.badge{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);font:800 .72rem/1 system-ui}.badge.gold{background:var(--gold-soft);color:#735415}.badge.blue{background:var(--blue-soft);color:#315768}
+    .result-title{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:0 0 7px;font:600 1.25rem/1.25 Georgia,serif}.badge{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);font:800 .72rem/1 system-ui}.badge.gold{background:var(--gold-soft);color:#735415}.badge.blue{background:var(--blue-soft);color:#315768}
     .result-note{margin:0;color:var(--muted);font-size:.84rem;line-height:1.48}.warning-note{margin-top:9px;padding:9px 10px;border-left:3px solid var(--gold);background:#fffbf2;color:#69572e;font-size:.79rem;line-height:1.45}
     .risk1-alert{margin-top:9px;padding:11px 12px;border-left:4px solid #b42318;border:1px solid #f0b6b0;border-left-width:4px;border-radius:10px;background:#fff1f0;color:#a11f17;font-size:.82rem;line-height:1.5}.risk1-alert strong{color:#8f1710}.risk1-info{margin-top:9px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#f3f4f6;color:#5b6370;font-size:.82rem;line-height:1.5}.risk1-info p{margin:0 0 8px}.risk1-info p:last-child{margin-bottom:0}.risk1-info ul{margin:7px 0 0;padding-left:20px}.risk1-info li+li{margin-top:4px}
     .recommendation{border:1px solid var(--line);border-radius:14px;background:#fbfcf9;padding:12px}.recommendation-head{display:flex;gap:10px;align-items:center;justify-content:space-between}.recommendation h3{margin:0;font-size:.92rem}.recommendation-list{list-style:none;margin:10px 0 0;padding:0;color:#395246;font-size:.78rem;line-height:1.45;display:grid;gap:6px}.recommendation-item{padding:8px 9px;border:1px solid #e8e6dd;border-radius:9px;background:#fff}.recommendation-item.basic-doc{background:#fff4b8;border-color:#e5c94d}.recommendation-item.establishment-doc{background:var(--conditional-soft);border-color:#c7ded2}.recommendation-item.process-doc{background:var(--process-soft);border-color:#cfd6e6}.recommendation-item.procedural-doc{box-shadow:inset 3px 0 0 #b88b2c}.recommendation-title{font-size:.8rem;font-weight:400;color:var(--ink);line-height:1.35}.recommendation-detail{margin-top:3px;color:#7a7f78;font-size:.68rem;line-height:1.4}.recommendation-empty{margin:10px 0 0;color:var(--muted);font-size:.78rem}
@@ -78,7 +78,7 @@
     .doc-result-card .doc-detail { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
     .chat-done-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .restart-btn { margin-top: 16px; align-self: center; }
-    @media(max-width:900px){header{grid-template-columns:1fr}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
+    @media(max-width:900px){header{flex-direction:column;align-items:stretch}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
     @media(max-width:600px){.shell{width:min(100% - 18px,1220px);padding-top:16px}.control-grid,.condition-grid,.group-grid{grid-template-columns:1fr}.source-banner{grid-template-columns:1fr}.source-icon{display:none}.panel-title-row{align-items:flex-start}.toolbar .btn{flex:1 1 auto}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
@@ -86,24 +86,29 @@
 <body>
   <main class="shell">
     <header>
-      <div>
+      <div style="flex: 1 1 500px; min-width: 0;">
         <p class="eyebrow">CBMPE · regularização e AVCB</p>
         <h1>Checklist documental</h1>
         <p class="subtitle">Lista consolidada de documentos e assistente de enquadramento por ocupação. O tipo A–Q identifica a ocupação; o nível de risco permanece informado manualmente e o pacote documental é montado pelas regras de risco, ocupação, características do estabelecimento e configurações do processo.</p>
       </div>
-      <div class="progress-card admin-only" aria-live="polite" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-        <button class="btn" id="clearFormButton" type="button" style="margin-bottom: 12px; font-size: 0.75rem; background: #fdfdfc; color: #7a7f78; border-color: #e3e4df; width: 100%;">Limpar formulário</button>
-        <span class="progress-number" id="progressNumber">0 / 0</span>
-        <span class="progress-label">documentos marcados</span>
-      </div>
-      <div class="admin-only" style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; padding-bottom: 8px;">
-        <div class="file-actions">
-          <button class="btn" id="importButton" type="button">Importar TXT</button>
-          <button class="btn" id="exportButton" type="button">Exportar TXT</button>
+      <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end;">
+        <div class="progress-card admin-only" aria-live="polite" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+          <button class="btn" id="clearFormButton" type="button" style="margin-bottom: 12px; font-size: 0.75rem; background: #fdfdfc; color: #7a7f78; border-color: #e3e4df; width: 100%;">Limpar formulário</button>
+          <span class="progress-number" id="progressNumber">0 / 0</span>
+          <span class="progress-label">documentos marcados</span>
         </div>
-        <div class="file-status" id="fileStatus">grupos_avcb.txt · não vinculado</div>
+        <div class="admin-only" style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; padding-bottom: 8px;">
+          <div class="file-actions">
+            <button class="btn" id="importButton" type="button">Importar TXT</button>
+            <button class="btn" id="exportButton" type="button">Exportar TXT</button>
+          </div>
+          <div class="file-status" id="fileStatus">grupos_avcb.txt · não vinculado</div>
+        </div>
+        <div style="align-self: flex-start; display: flex; flex-direction: column;">
+          <a href="?admin=1" class="btn chatbot-only" id="adminLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Acesso Admin</a>
+          <a href="?" class="btn admin-only" id="chatbotLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Chatbot</a>
+        </div>
       </div>
-      <a href="?admin=1" class="btn chatbot-only" id="adminLinkBtn" style="align-self: start; text-decoration: none; display: inline-flex; align-items: center; justify-self: end;">Acesso Admin</a>
     </header>
 
     <div id="chatbotPanel">
@@ -383,7 +388,7 @@
       Q:{name:"Especial", note:"Riscos específicos, estratégicos ou estruturas temporárias; podem depender de normas técnicas específicas do CBMPE."}
     };
 
-    const establishmentsRaw = [
+    const establishments = [
       ["Academia de ginástica", "K"], ["Agência de empregos", "F"], ["Agência de locação de filmes, fitas ou veículos", "E"], ["Agência de veículos", "E"], ["Agência de viagens ou turismo", "F"], ["Agência funerária", "E"], ["Albergue", "D"], ["Alfaiataria sem comércio de confecções prontas", "F"], ["Apart-hotel", "D"], ["Arquivo público", "Q"], ["Armarinho", "E"], ["Armazém ou depósito de produtos acondicionados", "O"], ["Asilo ou abrigo para idosos", "I"], ["Ateliê", "E"], ["Auditório", "H"], ["Açougue", "E"],
       ["Banca de estudos", "K"], ["Banco / serviço bancário ou de câmbio", "F"], ["Bar", "H"], ["Barbearia", "F"], ["Biblioteca pública ou privada", "Q"], ["Boate", "H"],
       ["Cabeleireiro", "F"], ["Canteiro de obras de edificação em construção", "Q"], ["Cartório", "Q"], ["Casa comercial diversa", "E"], ["Casa geriátrica", "I"], ["Casa lotérica", "E"], ["Casa noturna", "H"], ["Casa / residência unifamiliar", "A"], ["Central de computação / data center", "Q"], ["Central telefônica", "Q"], ["Centro administrativo", "F"], ["Centro comercial", "E"], ["Centro de convenções, exposição ou feira", "H"], ["Centro de formação, aperfeiçoamento ou habilitação profissional", "K"], ["Centro de saúde", "I"], ["Centro/fundação de ensino", "K"], ["Cinema", "H"], ["Circo", "H"], ["Clínica / casa de repouso", "I"], ["Clínica médica ou policlínica com atendimento exclusivamente ambulatorial", "F"], ["Clínica médica ou policlínica com internamento", "I"], ["Clínica com leitos apenas para repouso recuperatório", "F"], ["Clínica psiquiátrica com internamento", "I"], ["Clínica veterinária / consultório veterinário", "F"], ["Clube social", "H"], ["Condomínio / edifício residencial multifamiliar", "B"], ["Consultório médico", "F"], ["Consultório odontológico", "F"], ["Convento", "C"], ["Copiadora / reprografia", "F"],
@@ -405,7 +410,7 @@
       ["Posto de abastecimento de GNV", "O", "Opção complementar da relação procedimental fornecida; ativa automaticamente a condição documental específica de GNV."],
       ["Trio elétrico", "Q", "Opção complementar da relação procedimental fornecida; tratado como condição especial/temporária."],
       ["Outro / congênere — Residencial Coletiva", "C"], ["Outro / congênere — Residencial Transitória", "D"], ["Outro / congênere — Comercial", "E"], ["Outro / congênere — Escritório", "F"], ["Outro / congênere — Reunião de Público", "H"], ["Outro / congênere — Hospitalar", "I"], ["Outro / congênere — Escolar", "K"], ["Outra atividade industrial/fabril", "L"], ["Outro galpão/depósito", "N"], ["Outra instalação de derivados de petróleo/álcool/inflamáveis", "O"], ["Outra edificação especial definida pelo CBMPE", "Q"]
-    ].map((item, i) => ({id:`est-${i}`, label:item[0], type:item[1], note:item[2] || ""})).sort((a,b)=>a.label.localeCompare(b.label,"pt-BR",{sensitivity:"base"}));
+    ].map((item, i) => ({id: item[0].toLocaleLowerCase("pt-BR").normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""), label:item[0], type:item[1], note:item[2] || ""})).sort((a,b)=>a.label.localeCompare(b.label,"pt-BR",{sensitivity:"base"}));
 
     const officialGroups = [
       {id:"risk1", name:"Risco I — DDLCB", section:"Níveis de risco", docs:["identificacao","requerimento_ddclb","cnpj"], note:"Somente os 3 documentos da emissão facultativa da DDLCB, conforme item 5.5.5 da NT 1.01.", risk:"R1"},
@@ -726,18 +731,18 @@
     function flowComplete(){return !!state.establishment && !!state.risk && additionalStepsComplete();}
 
         function renderClassification(){
-        #establishmentSelect.value = state.establishment;
-        const box = #riskResultBox;
+        $("#establishmentSelect").value = state.establishment;
+        const box = $("#riskResultBox");
         if(!state.risk) { 
-          box.innerHTML = Aguardando avaliação...<div style="font-size:0.75rem; color:var(--warning); margin-top:4px;">Responda à etapa de Avaliação de Risco.</div>;
+          box.innerHTML = `Aguardando avaliação...<div style="font-size:0.75rem; color:var(--warning); margin-top:4px;">Responda à etapa de Avaliação de Risco.</div>`;
         }
         else if(state.risk==="R1") { 
-          box.innerHTML = <strong style="color:var(--ink)">Risco I — baixo / DDLCB</strong>
-                           <div style="font-size:0.75rem; color:var(--green2); margin-top:4px;">✓ Enquadrado como Risco I por marcação expressa.</div>;
+          box.innerHTML = `<strong style="color:var(--ink)">Risco I — baixo / DDLCB</strong>
+                           <div style="font-size:0.75rem; color:var(--green2); margin-top:4px;">✓ Enquadrado como Risco I por marcação expressa.</div>`;
         }
         else if(state.risk==="R2") { 
-          box.innerHTML = <strong style="color:var(--ink)">Risco II — médio / AR-AVCB</strong>
-                           <div style="font-size:0.75rem; color:var(--green2); margin-top:4px;">✓ Enquadrado como Risco II (nenhum limite ultrapassado).</div>;
+          box.innerHTML = `<strong style="color:var(--ink)">Risco II — médio / AR-AVCB</strong>
+                           <div style="font-size:0.75rem; color:var(--green2); margin-top:4px;">✓ Enquadrado como Risco II (nenhum limite ultrapassado).</div>`;
         }
         else if(state.risk==="R3") {
            const reasons = riskConditionDefs.filter(c=>c.id!=="noneRisk" && c.id!=="isRisco1" && state.conditions[c.id]).map(c=>{
@@ -745,13 +750,13 @@
              const lis = div.querySelectorAll('li');
              return lis.length > 0 ? Array.from(lis).map(li=>li.textContent).join("; ") : div.textContent;
            });
-           box.innerHTML = <strong style="color:var(--danger)">Risco III — alto / AR-AVCB (vistoria prévia)</strong>
-                            <div style="font-size:0.75rem; color:var(--danger); margin-top:4px;"><strong>Motivo(s):</strong><br> + reasons.map(r=>"• "+r).join("<br>") + </div>;
+           box.innerHTML = `<strong style="color:var(--danger)">Risco III — alto / AR-AVCB (vistoria prévia)</strong>
+                            <div style="font-size:0.75rem; color:var(--danger); margin-top:4px;"><strong>Motivo(s):</strong><br>` + reasons.map(r=>"• "+r).join("<br>") + `</div>`;
         }
         
-        const est=getEstablishment(); const title=#occupationTitle, desc=#occupationDescription, warning=#riskWarning, risk1Alert=#risk1Alert, risk1Info=#risk1Info;
+        const est=getEstablishment(); const title=$("#occupationTitle"), desc=$("#occupationDescription"), warning=$("#riskWarning"), risk1Alert=$("#risk1Alert"), risk1Info=$("#risk1Info");
       if(!est){title.replaceChildren(document.createTextNode("Selecione um estabelecimento"));desc.textContent="A lista contém as ocupações e exemplos expressamente citados pelo COSCIP, além de opções genéricas de outros/congêneres.";}
-      else{const type=occupationTypes[est.type];title.replaceChildren(document.createTextNode(est.label+" "),el("span","badge",`Tipo ${est.type}`),el("span","badge blue",type.name));desc.textContent=est.note||type.note;}
+      else{const type=occupationTypes[est.type];const bc=el("div","");bc.style.display="flex";bc.style.gap="8px";bc.style.flexWrap="wrap";bc.append(el("span","badge",`Tipo ${est.type}`),el("span","badge blue",type.name));title.replaceChildren(document.createTextNode(est.label),bc);desc.textContent=est.note||type.note;}
       const isRisk1=state.risk==="R1";
       risk1Alert.hidden=!isRisk1;
       risk1Info.hidden=!isRisk1;
@@ -888,12 +893,20 @@
     $("#searchInput").addEventListener("input",renderDocuments);
     $("#filterBasic").addEventListener("change",renderDocuments);
     $("#filterTecnico").addEventListener("change",renderDocuments);
+    $("#clearFormButton").addEventListener("click",()=>{
+      if(confirm("Deseja realmente limpar todo o formulário? Isso apagará as respostas e seleção de documentos.")) {
+        state = { checked: [], customGroups: state.customGroups || [], establishment: "", risk: "", conditions: {} };
+        persist();
+        renderAll();
+      }
+    });
     $("#clearButton").addEventListener("click",()=>{state.checked=[];persist();renderAll();});
     $("#markVisibleButton").addEventListener("click",()=>{const visible=[...document.querySelectorAll(".document-item:not(.hidden)")].map(n=>n.dataset.id);applyDocs(visible);});
 
     // Chatbot Logic
     const isAdmin = new URLSearchParams(window.location.search).has("admin");
     if(!isAdmin) {
+      document.querySelectorAll(".layout, #groupsAccordion, #risk1Alert, #risk1Info, .source-banner, .control-card").forEach(el => el.style.display = "none");
       // admin-only hidden by CSS
     } else {
       $("#chatbotPanel").style.display = "none";
