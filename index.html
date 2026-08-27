@@ -60,18 +60,25 @@
     .admin-only { display: none !important; }
     .chat-container { border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 65vh; min-height: 400px; margin-top: 16px; }
     .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+    .chat-messages::before { content: ""; flex: 1 1 auto; }
     .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; animation: fadeIn 0.3s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .chat-bubble.bot { align-self: flex-start; background: var(--green-soft); color: var(--green); border-bottom-left-radius: 4px; }
     .chat-bubble.bot strong { color: var(--green2); }
     .chat-bubble.user { align-self: flex-end; background: var(--gold-soft); color: #735415; border-bottom-right-radius: 4px; border: 1px solid #d9d2bf; }
-    .chat-input-area { padding: 16px; border-top: 1px solid var(--line); display: flex; gap: 10px; background: #fff; }
-    .chat-input-area input { flex: 1; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 22px; outline: none; }
+    .chat-input-area { padding: 16px; border-top: 1px solid var(--line); display: flex; gap: 10px; background: #fff; position: relative; }
+    .chat-input-area input { flex: 1; min-height: 44px; padding: 0 48px 0 16px; border: 1px solid var(--line); border-radius: 22px; outline: none; }
     .chat-input-area input:focus { border-color: var(--green2); box-shadow: 0 0 0 3px rgba(35,106,80,.12); }
     .chat-input-area input:disabled { background: #f9f9f9; cursor: not-allowed; }
-    .chat-options { padding: 0 16px 16px; display: flex; flex-wrap: wrap; gap: 8px; background: #fff; max-height: 150px; overflow-y: auto; }
-    .chat-option-btn { padding: 8px 16px; border: 1px solid var(--green); border-radius: 20px; background: #fff; color: var(--green); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .chat-option-btn:hover { background: var(--green-soft); }
+    .chat-send-btn { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+    .chat-send-btn:hover { background: var(--green2); }
+    .chat-send-btn svg { width: 14px; height: 14px; margin-left: -2px; margin-top: 1px; }
+    .chat-options { padding: 0 16px; display: flex; gap: 8px; background: #fff; min-height: 0; max-height: 0; opacity: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; flex-wrap: nowrap; align-items: center; border-top: 1px solid transparent; }
+    .chat-options.opened { animation: slideOpenOptions 2s ease forwards; }
+    @keyframes slideOpenOptions { from { min-height: 0; max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border-top-color: transparent; } to { min-height: 52px; max-height: 150px; opacity: 1; padding-top: 8px; padding-bottom: 8px; border-top-color: var(--line); } }
+    .chat-options::-webkit-scrollbar { display: none; }
+    .chat-option-btn { flex: 0 0 auto; padding: 8px 16px; border: 1px solid var(--green); border-radius: 20px; background: #fff; color: var(--green); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
+    .chat-option-btn:hover, .chat-option-btn:focus { background: var(--green-soft); }
     .doc-result-card { border: 1px solid #c7ded2; border-radius: 12px; background: #f7fbf8; padding: 12px; margin-top: 8px; text-align: left; animation: fadeIn 0.3s ease-out; }
     .doc-result-card.basic { background: #fff4b8; border-color: #e5c94d; }
     .doc-result-card .doc-title { font-weight: 600; color: var(--ink); font-size: 0.85rem; }
@@ -113,13 +120,13 @@
 
     <div id="chatbotPanel">
       <div class="chat-container">
-        <div class="chat-messages" id="chatMessages">
-           <div class="chat-bubble bot">Olá! Sou o assistente virtual do Checklist AVCB. Posso te ajudar a descobrir quais documentos você precisa providenciar para a regularização no CBMPE.<br><br>Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)</div>
-        </div>
+        <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-options" id="chatOptions"></div>
         <div class="chat-input-area" id="chatInputArea">
            <input type="text" id="chatInput" placeholder="Digite o tipo de estabelecimento para buscar..." autocomplete="off">
-           <button class="btn btn-primary" id="chatSend" style="display: none;">Enviar</button>
+           <button class="chat-send-btn" id="chatSend" title="Enviar" aria-label="Enviar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+           </button>
         </div>
       </div>
     </div>
@@ -388,7 +395,7 @@
       Q:{name:"Especial", note:"Riscos específicos, estratégicos ou estruturas temporárias; podem depender de normas técnicas específicas do CBMPE."}
     };
 
-    const establishments = [
+    var establishments = [
       ["Academia de ginástica", "K"], ["Agência de empregos", "F"], ["Agência de locação de filmes, fitas ou veículos", "E"], ["Agência de veículos", "E"], ["Agência de viagens ou turismo", "F"], ["Agência funerária", "E"], ["Albergue", "D"], ["Alfaiataria sem comércio de confecções prontas", "F"], ["Apart-hotel", "D"], ["Arquivo público", "Q"], ["Armarinho", "E"], ["Armazém ou depósito de produtos acondicionados", "O"], ["Asilo ou abrigo para idosos", "I"], ["Ateliê", "E"], ["Auditório", "H"], ["Açougue", "E"],
       ["Banca de estudos", "K"], ["Banco / serviço bancário ou de câmbio", "F"], ["Bar", "H"], ["Barbearia", "F"], ["Biblioteca pública ou privada", "Q"], ["Boate", "H"],
       ["Cabeleireiro", "F"], ["Canteiro de obras de edificação em construção", "Q"], ["Cartório", "Q"], ["Casa comercial diversa", "E"], ["Casa geriátrica", "I"], ["Casa lotérica", "E"], ["Casa noturna", "H"], ["Casa / residência unifamiliar", "A"], ["Central de computação / data center", "Q"], ["Central telefônica", "Q"], ["Centro administrativo", "F"], ["Centro comercial", "E"], ["Centro de convenções, exposição ou feira", "H"], ["Centro de formação, aperfeiçoamento ou habilitação profissional", "K"], ["Centro de saúde", "I"], ["Centro/fundação de ensino", "K"], ["Cinema", "H"], ["Circo", "H"], ["Clínica / casa de repouso", "I"], ["Clínica médica ou policlínica com atendimento exclusivamente ambulatorial", "F"], ["Clínica médica ou policlínica com internamento", "I"], ["Clínica com leitos apenas para repouso recuperatório", "F"], ["Clínica psiquiátrica com internamento", "I"], ["Clínica veterinária / consultório veterinário", "F"], ["Clube social", "H"], ["Condomínio / edifício residencial multifamiliar", "B"], ["Consultório médico", "F"], ["Consultório odontológico", "F"], ["Convento", "C"], ["Copiadora / reprografia", "F"],
@@ -401,7 +408,7 @@
       ["Laboratório de análises clínicas", "F"], ["Lanchonete pequena — atendimento no balcão, sem fornecimento de refeições e área < 50 m²", "E"], ["Livraria", "E"], ["Loja", "E"], ["Loja de departamentos", "E"],
       ["Magazine", "E"], ["Mercado", "E"], ["Motel", "D"], ["Pousada", "D", "A NT nº 1.01 inclui pousadas no critério de leitos usado no enquadramento do Risco II."], ["Pensão / hospedagem transitória", "D", "A NT nº 1.01 inclui pensão no critério de leitos usado no enquadramento do Risco II; não confundir com pensionato de ocupação coletiva Tipo C."], ["Museu", "Q"],
       ["Oficina de consertos ou serviços", "E"], ["Orfanato", "C"],
-      ["Padaria — produção destinada exclusivamente à venda varejista no próprio balcão", "E"], ["Shopping center", "E", "O COSCIP trata shopping center como edificação comercial em regra específica de escadas."], ["Papelaria", "E"], ["Parque de diversões", "H"], ["Parque de tancagem / tanque isolado", "O"], ["Pensionato", "C"], ["Perfumaria", "E"], ["Plataforma de carregamento", "O"], ["Ponto de venda / serviço de derivados de petróleo, álcool ou inflamáveis", "O"],
+      ["Padaria", "E"], ["Shopping center", "E", "O COSCIP trata shopping center como edificação comercial em regra específica de escadas."], ["Papelaria", "E"], ["Parque de diversões", "H"], ["Parque de tancagem / tanque isolado", "O"], ["Pensionato", "C"], ["Perfumaria", "E"], ["Plataforma de carregamento", "O"], ["Ponto de venda / serviço de derivados de petróleo, álcool ou inflamáveis", "O"],
       ["Reformatório", "C"], ["Refinaria", "O"], ["Restaurante", "H"],
       ["Sala de desenho", "F"], ["Salão de baile ou jogos", "H"], ["Sapataria", "E"], ["Seminário", "C"], ["Supermercado", "E"],
       ["Teatro", "H"], ["Templo religioso com auditório", "H", "O COSCIP determina que templos com auditório sejam classificados como Reunião de Público."], ["Templo religioso sem auditório", "P"], ["Tipografia", "L"],
@@ -468,7 +475,7 @@
 
     const establishmentConditionDefs = [
       {id:"noneEstablishment", label:"Nenhum", none:true},
-      {id:"pessoaFisica", label:"Pessoa física / processo sem CNPJ", exclusiveWith:["mei"], note:"Para Risco II/III, substitui CNPJ e documento de constituição pelo CPF do responsável. Para DDLCB de Risco I, a NT 1.01 exige CNPJ."},
+      {id:"pessoaFisica", label:"O processo está no nome de uma pessoa física?", exclusiveWith:["mei"], note:"O sistema exigirá apenas o CPF (dispensando CNPJ e Contrato Social)."},
       {id:"mei", label:"É MEI", exclusiveWith:["pessoaFisica"], note:"O CCMEI substitui o contrato social no pacote recomendado; o CNPJ permanece."},
       {id:"condominio", label:"Está inserido em condomínio, shopping, galeria ou edifício empresarial"},
       {id:"condominioPci", label:"A unidade está integralmente contemplada no PCI do condomínio", dependsOn:"condominio", onlyRisk:"R3", note:"No Risco III, libera memorial de incêndio e planta do PCI do condomínio."},
@@ -483,7 +490,7 @@
       {id:"spda", label:"Possui SPDA / para-raios"},
       {id:"casaNoturna", label:"É casa noturna / casa de recepção", autoFor:["Casa noturna","Casa de recepção"]},
       {id:"palco", label:"Possui palco ou estrutura temporária", suggestFor:["Estrutura temporária para evento festivo, cívico ou religioso"]},
-      {id:"postoGnv", label:"É posto de abastecimento de GNV", autoFor:["Posto de abastecimento de GNV"]},
+      {id:"postoGnv", label:"É posto de abastecimento de GNV", dependsOn:"gnv", autoFor:["Posto de abastecimento de GNV"]},
       {id:"trio", label:"Possui / utiliza trio elétrico", autoFor:["Trio elétrico"]},
       {id:"historico", label:"É imóvel histórico ou tombado", note:"A certidão/declaração cultural será acrescentada quando também houver recurso por inviabilidade técnica."},
       {id:"procuracao", label:"O requerimento está sendo feito por procurador / preposto"}
@@ -509,7 +516,7 @@
     const storageKey = "checklist-avcb-cbmpe-v8";
     const legacyStorageKeys = ["checklist-avcb-cbmpe-v7","checklist-avcb-cbmpe-v4"];
     const txtFileName = "grupos_avcb.txt";
-    let state = {checked:[], customGroups:[], establishment:"", risk:"", conditions:{...defaultConditions}};
+    let state = {checked:[], customGroups:[], establishment:"", risk:"", userName:"", conditions:{...defaultConditions}};
     let fileHandle = null, writeQueue = Promise.resolve(), editingGroupId = null;
 
     const $ = s => document.querySelector(s);
@@ -895,7 +902,7 @@
     $("#filterTecnico").addEventListener("change",renderDocuments);
     $("#clearFormButton").addEventListener("click",()=>{
       if(confirm("Deseja realmente limpar todo o formulário? Isso apagará as respostas e seleção de documentos.")) {
-        state = { checked: [], customGroups: state.customGroups || [], establishment: "", risk: "", conditions: {} };
+        state = { checked: [], customGroups: state.customGroups || [], establishment: "", risk: "", userName: "", conditions: {} };
         persist();
         renderAll();
       }
@@ -921,58 +928,172 @@
     const chatOptions = $("#chatOptions");
     const chatInputArea = $("#chatInputArea");
     
+    let isDown = false; let startX; let scrollLeft; let isDragging = false;
+    chatOptions.addEventListener('mousedown', (e) => {
+      isDown = true; isDragging = false; startX = e.pageX - chatOptions.offsetLeft; scrollLeft = chatOptions.scrollLeft; chatOptions.style.cursor = 'grabbing';
+    });
+    chatOptions.addEventListener('mouseleave', () => { isDown = false; chatOptions.style.cursor = ''; });
+    chatOptions.addEventListener('mouseup', () => { isDown = false; chatOptions.style.cursor = ''; });
+    chatOptions.addEventListener('mousemove', (e) => {
+      if(!isDown) return;
+      const x = e.pageX - chatOptions.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      if (Math.abs(walk) > 5) isDragging = true;
+      chatOptions.scrollLeft = scrollLeft - walk;
+    });
+    chatOptions.addEventListener('click', (e) => { if (isDragging) { e.preventDefault(); e.stopPropagation(); } }, true);
+    chatOptions.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const buttons = Array.from(chatOptions.querySelectorAll('.chat-option-btn'));
+        const index = buttons.indexOf(document.activeElement);
+        if(index >= 0) {
+          let nextIndex = e.key === 'ArrowRight' ? index + 1 : index - 1;
+          if (nextIndex < 0) nextIndex = buttons.length - 1;
+          if (nextIndex >= buttons.length) nextIndex = 0;
+          buttons[nextIndex].focus();
+          e.preventDefault();
+        }
+      } else if (e.key === 'Backspace') {
+        if (chatInput.value.length > 0) {
+          chatInput.value = chatInput.value.slice(0, -1);
+          chatInput.dispatchEvent(new CustomEvent('input', { detail: 'fromOptions' }));
+        }
+        e.preventDefault();
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        chatInput.value += e.key;
+        chatInput.dispatchEvent(new CustomEvent('input', { detail: 'fromOptions' }));
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        chatInput.focus();
+        e.preventDefault();
+      }
+    });
+
+    chatInput?.addEventListener("keydown", (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const firstOption = Array.from(chatOptions.querySelectorAll('.chat-option-btn')).find(b => b.style.display !== 'none');
+        if (firstOption) { firstOption.focus(); e.preventDefault(); }
+      } else if (e.key === 'Enter') {
+        if (chatState === "NAME") {
+           const name = chatInput.value.trim();
+           if(name.length > 0) {
+              state.userName = name;
+              persist();
+              addChatBubble(name, false);
+              chatInput.value = "";
+              chatState = "ESTAB";
+              
+              const runNext = async () => {
+                 await addChatBubble(`Olá ${name}. Vou lhe fazer algumas perguntas para descobrirmos quais documentos você precisa para fazer o seu AVCB.`);
+                 await addChatBubble("Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)");
+                 chatInput.placeholder = "Digite o tipo de estabelecimento para buscar...";
+              };
+              runNext();
+           }
+           e.preventDefault();
+           return;
+        }
+        const visibleButtons = Array.from(chatOptions.querySelectorAll('.chat-option-btn')).filter(b => b.style.display !== 'none');
+        if (visibleButtons.length === 1 || (visibleButtons.length > 0 && e.target.value.trim().toLowerCase() === visibleButtons[0].textContent.toLowerCase())) {
+           visibleButtons[0].click();
+        } else if (visibleButtons.length > 0) {
+           visibleButtons[0].click();
+        }
+        e.preventDefault();
+      }
+    });
+    
+    $("#chatSend").addEventListener("click", () => {
+      const e = new KeyboardEvent("keydown", { key: "Enter" });
+      chatInput.dispatchEvent(e);
+    });
+    
     function addChatBubble(text, isBot=true) {
-      const b = el("div", "chat-bubble " + (isBot ? "bot" : "user"));
-      b.innerHTML = text;
-      chatMessages.append(b);
-      // Wait for DOM to render then scroll
-      setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
+      return new Promise(resolve => {
+        const b = el("div", "chat-bubble " + (isBot ? "bot" : "user"));
+        chatMessages.append(b);
+        setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
+        
+        if (isBot) {
+          let dots = 1;
+          b.innerHTML = '<span style="font-family: monospace; font-size: 1.2rem; line-height: 0.5;">.</span>';
+          const waitTime = Math.floor(Math.random() * 700) + 800;
+          
+          const interval = setInterval(() => {
+            dots = (dots % 3) + 1;
+            b.innerHTML = '<span style="font-family: monospace; font-size: 1.2rem; line-height: 0.5;">' + ".".repeat(dots) + '</span>';
+          }, 250);
+          
+          setTimeout(() => {
+            clearInterval(interval);
+            b.innerHTML = text;
+            setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
+            resolve();
+          }, waitTime);
+        } else {
+          b.innerHTML = text;
+          resolve();
+        }
+      });
     }
     
     function clearChatOptions() { chatOptions.replaceChildren(); }
     
     function addChatOption(label, onClick) {
+      if (!chatOptions.classList.contains('opened')) {
+        chatOptions.classList.add('opened');
+      }
       const b = el("button", "chat-option-btn", label);
       b.onclick = onClick;
       chatOptions.append(b);
     }
     
-    function checkRisk3(conditionId, question, nextStep) {
-      addChatBubble(question);
+    async function checkRisk3(conditionId, question, nextStep) {
+      chatInput.disabled = false;
+      chatInput.value = "";
+      chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+      chatInput.focus();
       clearChatOptions();
-      addChatOption("Sim", () => { 
-         addChatBubble("Sim", false);
-         addChatBubble("Devido ao limite ultrapassado, o local classifica-se como <strong>Risco III (Alto)</strong>.");
+      await addChatBubble(question);
+      addChatOption("Sim", async () => { 
+         clearChatOptions();
+         await addChatBubble("Sim", false);
          state.conditions[conditionId] = true;
          syncConditionalState();
          persist(); renderAll();
          buildCondQueue();
          nextCondQuestion();
       });
-      addChatOption("Não", () => { 
-         addChatBubble("Não", false);
+      addChatOption("Não", async () => { 
+         clearChatOptions();
+         await addChatBubble("Não", false);
          nextStep(); 
       });
     }
 
-    function askRisk() {
+    async function askRisk() {
       chatState = "RISK";
-      chatInput.disabled = true;
-      chatInput.placeholder = "Responda usando os botões...";
-      addChatBubble("Vamos descobrir o nível de risco! O estabelecimento é uma <strong>residência unifamiliar (casa isolada)</strong> ou atividade expressamente classificada como <strong>Risco I (Baixo)</strong> pela NT 1.01?");
+      chatInput.disabled = false;
+      chatInput.value = "";
+      chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+      chatInput.focus();
       clearChatOptions();
-      addChatOption("Sim (Risco I)", () => { 
-        addChatBubble("Sim (Risco I)", false);
+      await addChatBubble("O estabelecimento é uma <strong>residência unifamiliar (casa isolada)</strong>?");
+      
+      addChatOption("Sim", async () => { 
+        clearChatOptions();
+        await addChatBubble("Sim", false);
+        await addChatBubble("Dispensado de AVCB.<br>Se houver interesse, você pode solicitar uma DDLCB (Declaração de Dispensa de Licenciamento do Corpo de Bombeiros), são necessários:<br><ul style='margin:0; padding-left:20px'><li>Documento de identidade com foto</li><li>CNPJ</li><li>Requerimento para emissão da DDLCB (através de um responsável técnico da Sá Moraes Engenharia).</li></ul>");
         state.conditions.isRisco1 = true;
         syncConditionalState();
         persist(); renderAll();
-        buildCondQueue();
-        nextCondQuestion();
+        askToContact("Requerimento para emissão da DDLCB");
       });
-      addChatOption("Não", () => {
-        addChatBubble("Não", false);
+      addChatOption("Não", async () => {
+        clearChatOptions();
+        await addChatBubble("Não", false);
         checkRisk3("areaAlta",
-          "A área construída é <strong>maior que 750m²</strong>, está inserida em condomínio maior que 750m², ou possui <strong>mais de 3 andares</strong>?",
+          "Responda Sim se o seu estabelecimento corresponde a um dos três casos abaixo:<br>A área construída é <strong>maior que 750m²</strong>?<br>Ou está inserida em condomínio maior que <strong>750m²</strong>?<br>Ou possui <strong>mais de 3 andares</strong>?",
           () => {
              checkRisk3("gasAlto",
                "O local armazena <strong>mais de 190kg de gás (GLP)</strong>, revende gás, ou possui <strong>produtos perigosos, líquidos inflamáveis (acima de 1000L) ou outros gases</strong>?",
@@ -982,8 +1103,8 @@
                    () => {
                      checkRisk3("eventoHosp",
                        "O local funciona como <strong>evento temporário</strong> ou é um <strong>hospital/clínica</strong> com pacientes com dificuldade de locomoção?",
-                       () => {
-                          addChatBubble("Ótimo! Nenhum limite restritivo foi ultrapassado. O local enquadra-se como <strong>Risco II (Médio)</strong>.");
+                       async () => {
+                          clearChatOptions();
                           state.conditions.noneRisk = true;
                           syncConditionalState();
                           persist(); renderAll();
@@ -991,109 +1112,308 @@
                           nextCondQuestion();
                        }
                      );
-                   }
-                 );
-               }
-             );
-          }
-        );
-      });
-    }
-    
-    function buildCondQueue() {
-      chatCondQueue = [];
-      conditionDefs.forEach(c => {
-        if(!c.none && conditionVisible(c)) {
-          const autoIds = new Set(autoConditionIdsForEstablishment());
-          if(!autoIds.has(c.id)) {
-            chatCondQueue.push(c);
-          }
-        }
-      });
-    }
-    
-    function nextCondQuestion() {
-      if(chatCondQueue.length === 0) {
-        finishChat();
-        return;
-      }
-      chatState = "COND";
-      const c = chatCondQueue.shift();
-      if(!conditionVisible(c)) {
-        nextCondQuestion();
-        return;
-      }
-      addChatBubble("<strong>" + c.label + "?</strong>");
-      if(c.note) addChatBubble("<small>" + c.note + "</small>");
-      clearChatOptions();
-      addChatOption("Sim", () => { handleCondAnswer(c, true); });
-      addChatOption("Não", () => { handleCondAnswer(c, false); });
-    }
-    
-    function handleCondAnswer(c, val) {
-      addChatBubble(val ? "Sim" : "Não", false);
-      state.conditions[c.id] = val;
-      syncConditionalState();
-      persist(); renderAll();
-      nextCondQuestion();
-    }
-    
-    function finishChat() {
-      chatState = "DONE";
-      clearChatOptions();
-      chatInputArea.style.display = "none";
-      const rec = computeRecommended();
-      if(rec.size === 0) {
-        addChatBubble("Nenhum documento foi associado às escolhas atuais.");
-        return;
-      }
-      addChatBubble("Certo! Com base nas suas respostas, aqui estão os <strong>" + rec.size + " documentos necessários</strong>:");
-      
-      const doneContainer = el("div", "chat-done-container");
-      for (let [id, meta] of rec.entries()) {
-        const d = docById[id];
-        let cls = "doc-result-card";
-        if(meta.kinds.includes("basic")) cls += " basic";
-        const card = el("div", cls);
-          const cTitle = el("div", "doc-title"); cTitle.innerHTML = d.title; card.append(cTitle);
-          if(d.detail) { const cDet = el("div", "doc-detail"); cDet.innerHTML = d.detail; card.append(cDet); }
-        card.append(el("div", "doc-detail", "Motivo: " + meta.reasons.join(" · ")));
-        doneContainer.append(card);
-      }
-      
-      const restartBtn = el("button", "btn btn-primary restart-btn", "Fazer nova consulta");
-      restartBtn.onclick = () => location.reload();
-      doneContainer.append(restartBtn);
-      
-      chatMessages.append(doneContainer);
-      setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
-    }
-    
-    chatInput?.addEventListener("input", (e) => {
-      if(chatState !== "ESTAB") return;
-      const q = e.target.value.trim().toLocaleLowerCase("pt-BR").normalize("NFD").replace(/\p{Diacritic}/gu,"");
-      clearChatOptions();
-      if(q.length < 2) return;
-      const matches = establishments.filter(est => {
-        const text = est.label.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/\p{Diacritic}/gu,"");
-        return text.includes(q);
-      }).slice(0, 10);
-      
-      matches.forEach(est => {
-        addChatOption(est.label, () => {
-          chatInput.value = "";
-          addChatBubble(est.label, false);
-          state.establishment = est.id;
-          syncConditionalState();
-          persist(); renderAll();
-          askRisk();
+                                         }
+                   );
+                 }
+               );
+            }
+          );
         });
-      });
-      if(matches.length === 0) addChatOption("Nenhum encontrado", ()=>{});
-    });
+      }
 
-    (async function init(){loadLocal();await tryLoadSiblingTxt();populateEstablishments();syncConditionalState();renderAll();})();
-  </script>
+      function buildCondQueue() {
+        chatCondQueue = [];
+        const queueDefs = [...establishmentConditionDefs, ...processConditionDefs];
+        queueDefs.forEach(c => {
+          if(!c.none && conditionVisible(c)) {
+            const autoIds = new Set(autoConditionIdsForEstablishment());
+            if(!autoIds.has(c.id)) {
+              chatCondQueue.push(c);
+            }
+          }
+        });
+      }
+      
+      async function nextCondQuestion() {
+        if(chatCondQueue.length === 0) {
+          finishChat();
+          return;
+        }
+        chatState = "COND";
+        chatInput.disabled = false;
+        chatInput.value = "";
+        chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+        chatInput.focus();
+        const c = chatCondQueue.shift();
+        if(!conditionVisible(c)) {
+          nextCondQuestion();
+          return;
+        }
+        clearChatOptions();
+        await addChatBubble("<strong>" + c.label + "?</strong>");
+        if(c.note) await addChatBubble("<small>" + c.note + "</small>");
+        
+        addChatOption("Sim", () => { handleCondAnswer(c, true); });
+        addChatOption("Não", () => { handleCondAnswer(c, false); });
+      }
+      
+      async function handleCondAnswer(c, val) {
+        clearChatOptions();
+        await addChatBubble(val ? "Sim" : "Não", false);
+        state.conditions[c.id] = val;
+        syncConditionalState();
+        persist(); renderAll();
+        nextCondQuestion();
+      }
+      
+async function askToContact(subject, docList = false) {
+   chatState = "CONTACT";
+   chatInputArea.style.display = "flex";
+   chatInput.disabled = false;
+   chatInput.value = "";
+   chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+   chatInput.focus();
+   
+   clearChatOptions();
+   
+   let question = docList 
+      ? "Gostaria de entrar em contato com um técnico da Sá Moraes Engenharia para mais informações sobre a sua documentação?" 
+      : `Gostaria de entrar em contato com um técnico da Sá Moraes Engenharia para mais informações sobre o ${subject}?`;
+      
+   await addChatBubble(question);
+   
+   let msg = docList
+      ? "Olá, vim do site AVCB Pernambuco e gostaria de mais informações a respeito da minha documentação."
+      : `Olá, vim do site AVCB Pernambuco e gostaria de mais informações a respeito do ${subject}.`;
+   
+   const wppLink = `https://wa.me/5581999892151?text=${encodeURIComponent(msg)}`;
+   
+   addChatOption("Sim", async () => {
+      clearChatOptions();
+      await addChatBubble("Sim", false);
+      chatInputArea.style.display = "none";
+      chatState = "DONE";
+      
+      const wppHtml = `Ótimo! Você será redirecionado para o nosso <a href="${wppLink}" target="_blank">WhatsApp</a> em <span id="wpp-countdown">5</span> segundos.`;
+      await addChatBubble(wppHtml);
+      
+      let count = 5;
+      const interval = setInterval(async () => {
+          count--;
+          const span = document.getElementById("wpp-countdown");
+          if(span) span.innerText = count;
+          if(count <= 0) {
+              clearInterval(interval);
+              window.open(wppLink, '_blank');
+              
+              await addChatBubble("Gostaria de fazer uma outra análise de AVCB?");
+              chatState = "RESTART";
+              chatInputArea.style.display = "flex";
+              chatInput.disabled = false;
+              chatInput.value = "";
+              chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+              chatInput.focus();
+              clearChatOptions();
+              
+              addChatOption("Sim", async () => {
+                  clearChatOptions();
+                  await addChatBubble("Sim", false);
+                  state.establishment = "";
+                  state.risk = "";
+                  state.conditions = {...defaultConditions};
+                  persist();
+                  location.reload();
+              });
+              addChatOption("Não", async () => {
+                  clearChatOptions();
+                  await addChatBubble("Não", false);
+                  chatInputArea.style.display = "none";
+                  chatState = "DONE";
+                  await addChatBubble("A Sá Moraes está sempre à disposição. Até logo.");
+              });
+          }
+      }, 1000);
+   });
+   
+   addChatOption("Não", async () => {
+      clearChatOptions();
+      await addChatBubble("Não", false);
+      chatInputArea.style.display = "none";
+      chatState = "DONE";
+      await addChatBubble("Tudo bem! O Checklist foi concluído. Se precisar de algo, estamos à disposição.");
+   });
+}
+
+function printChecklist(rec) {
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  const doc = iframe.contentWindow.document;
+  doc.write('<html><head><title>Checklist AVCB - Sá Moraes Engenharia</title>');
+  doc.write('<style>');
+  doc.write(`
+    body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+    h1 { color: #236a50; border-bottom: 2px solid #236a50; padding-bottom: 10px; }
+    .doc-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; page-break-inside: avoid; }
+    .doc-title { font-weight: bold; font-size: 1.1em; margin-bottom: 5px; color: #236a50; }
+    .doc-detail { font-size: 0.9em; margin-top: 5px; }
+    .doc-reasons { font-size: 0.85em; color: #666; margin-top: 8px; font-style: italic; }
+    .basic { border-left: 5px solid #236a50; }
+  `);
+  doc.write('</style></head><body>');
+  
+  const estName = establishments.find(e => e.id === state.establishment)?.label || state.establishment;
+  
+  doc.write('<h1>Checklist AVCB - Sá Moraes Engenharia</h1>');
+  doc.write('<p><strong>Nome:</strong> ' + (state.userName || 'Não informado') + '</p>');
+  doc.write('<p><strong>Estabelecimento:</strong> ' + estName + '</p>');
+  doc.write('<h3>Documentos Necessários (' + rec.size + '):</h3>');
+  
+  for (let [id, meta] of rec.entries()) {
+      const d = docById[id];
+      let cls = "doc-card";
+      if(meta.kinds.includes("basic")) cls += " basic";
+      doc.write('<div class="' + cls + '">');
+      doc.write('<div class="doc-title">' + d.title + '</div>');
+      if(d.detail) doc.write('<div class="doc-detail">' + d.detail + '</div>');
+      doc.write('<div class="doc-reasons">Motivo: ' + meta.reasons.join(" &bull; ") + '</div>');
+      doc.write('</div>');
+  }
+  
+  doc.write('</body></html>');
+  doc.close();
+  
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+  
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 1000);
+}
+
+async function finishChat() {
+  chatState = "DONE";
+  clearChatOptions();
+  chatInputArea.style.display = "none";
+  const rec = computeRecommended();
+  if(rec.size === 0) {
+    await addChatBubble("Nenhum documento foi associado às escolhas atuais.");
+    askToContact(null, true);
+    return;
+  }
+  await addChatBubble("Certo! Com base nas suas respostas, aqui estão os <strong>" + rec.size + " documentos necessários</strong>:");
+  
+  const doneContainer = el("div", "chat-done-container");
+  for (let [id, meta] of rec.entries()) {
+    const d = docById[id];
+    let cls = "doc-result-card";
+    if(meta.kinds.includes("basic")) cls += " basic";
+    const card = el("div", cls);
+      const cTitle = el("div", "doc-title"); cTitle.innerHTML = d.title; card.append(cTitle);
+      if(d.detail) { const cDet = el("div", "doc-detail"); cDet.innerHTML = d.detail; card.append(cDet); }
+    card.append(el("div", "doc-detail", "Motivo: " + meta.reasons.join(" • ")));
+    doneContainer.append(card);
+  }
+  
+  const btnsDiv = el("div");
+  btnsDiv.style.marginTop = "15px";
+  btnsDiv.style.display = "flex";
+  btnsDiv.style.gap = "10px";
+  btnsDiv.style.flexWrap = "wrap";
+  
+  const restartBtn = el("button", "btn btn-primary restart-btn", "Fazer nova consulta");
+  restartBtn.onclick = () => {
+      state.establishment = "";
+      state.risk = "";
+      state.conditions = {...defaultConditions};
+      persist();
+      location.reload();
+  };
+  
+  const printBtn = el("button", "btn", "Imprimir em PDF");
+  printBtn.style.border = "1px solid var(--green)";
+  printBtn.style.background = "#fff";
+  printBtn.style.color = "var(--green)";
+  printBtn.onclick = () => printChecklist(rec);
+  
+  btnsDiv.append(restartBtn, printBtn);
+  doneContainer.append(btnsDiv);
+  chatMessages.append(doneContainer);
+  scrollToBottom();
+  
+  askToContact(null, true);
+}
+
+chatInput?.addEventListener("input", (e) => {
+  if(chatState === "ESTAB") {
+    const q = e.target.value.trim().toLocaleLowerCase("pt-BR").normalize("NFD").replace(/\p{Diacritic}/gu,"");
+    clearChatOptions();
+    if(q.length < 2) return;
+    const matches = establishments.filter(est => {
+      const text = est.label.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/\p{Diacritic}/gu,"");
+      return text.includes(q);
+    }).slice(0, 10);
+    
+    matches.forEach(est => {
+      addChatOption(est.label, async () => {
+        chatInput.value = "";
+        clearChatOptions();
+        await addChatBubble(est.label, false);
+        state.establishment = est.id;
+        syncConditionalState();
+        persist(); renderAll();
+        askRisk();
+      });
+    });
+    if(matches.length === 0) addChatOption("Nenhum encontrado", ()=>{});
+  } else {
+    const q = e.target.value.trim().toLowerCase();
+    const buttons = chatOptions.querySelectorAll('.chat-option-btn');
+    buttons.forEach(b => {
+       if (b.textContent.toLowerCase().includes(q)) {
+          b.style.display = "inline-block";
+       } else {
+          b.style.display = "none";
+       }
+    });
+  }
+  
+  if (e.detail === 'fromOptions') {
+    const firstOption = Array.from(chatOptions.querySelectorAll('.chat-option-btn')).find(b => b.style.display !== 'none');
+    if (firstOption) firstOption.focus();
+    else chatInput.focus();
+  }
+});
+
+(async function init(){
+  loadLocal();
+  await tryLoadSiblingTxt();
+  populateEstablishments();
+  syncConditionalState();
+  renderAll();
+  
+  if(!isAdmin) {
+    if(!state.userName) {
+      chatState = "NAME";
+      await addChatBubble("Olá! Sou o assistente virtual da Sá Moraes Engenharia. Pode me chamar de Sara.");
+      await addChatBubble("Posso te ajudar a descobrir quais documentos você precisa providenciar para a regularização do AVCB.");
+      await addChatBubble("Qual é o seu nome?");
+      chatInput.disabled = false;
+      chatInput.placeholder = "Digite o seu nome...";
+      chatInput.focus();
+    } else if(!state.establishment) {
+      chatState = "ESTAB";
+      await addChatBubble(`Olá ${state.userName}. Vou lhe fazer algumas perguntas para descobrirmos quais documentos você precisa para fazer o seu AVCB.`);
+      await addChatBubble("Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)");
+      chatInput.disabled = false;
+      chatInput.placeholder = "Digite o tipo de estabelecimento para buscar...";
+      chatInput.focus();
+    } else {
+      chatInput.disabled = false;
+      chatInput.focus();
+    }
+  }
+})();
+</script>
 </body>
 </html>
-
