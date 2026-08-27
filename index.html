@@ -58,7 +58,7 @@
     .risk-incompatibility{margin-top:9px;padding:9px 10px;border:1px solid #e2b3aa;border-radius:9px;background:#fff4f2;color:#8d3027;font-size:.75rem;line-height:1.4}
     .footer-sources{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,254,250,.72);color:var(--muted);font-size:.76rem;line-height:1.5}.footer-sources strong{color:var(--ink)}
     dialog{width:min(760px,calc(100% - 28px));max-height:86vh;border:1px solid var(--line);border-radius:18px;padding:0;background:var(--card);box-shadow:0 28px 80px rgba(0,0,0,.22)}dialog::backdrop{background:rgba(14,22,18,.42)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}.dialog-body{padding:16px 18px;max-height:62vh;overflow:auto}.dialog-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line)}.group-name{width:100%;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px}.dialog-docs{display:grid;gap:5px}.dialog-doc{display:flex;gap:8px;padding:7px;border-radius:8px;font-size:.75rem;line-height:1.35}.dialog-doc:hover{background:#f7f8f4}.dialog-doc input{accent-color:var(--green)}
-    .toast{position:fixed;right:18px;bottom:18px;z-index:20;padding:11px 14px;border-radius:11px;background:#173e30;color:#fff;box-shadow:var(--shadow);font-size:.78rem;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
+    .toast{position:fixed;left:50%;top:50%;z-index:300;padding:20px 28px;border-radius:16px;background:#173e30;color:#fff;box-shadow:var(--shadow);font-size:1.05rem;font-weight:650;line-height:1.4;text-align:center;max-width:min(90vw,440px);opacity:0;transform:translate(-50%,-50%) scale(.94);pointer-events:none;transition:opacity 2s ease, transform 2s ease}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
     .admin-only { display: none !important; }
     .chat-container { border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 65vh; min-height: 400px; margin-top: 16px; }
     .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
@@ -112,6 +112,8 @@
     .docs-modal-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f4f5f1; color: var(--muted); font-size: 1.1rem; cursor: pointer; line-height: 1; }
     .docs-modal-close:hover { background: #ecebe4; color: var(--ink); }
     .docs-modal-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .docs-modal-copy-btn { background: #fff4b8; border-color: #e5c94d; color: #735415; }
+    .docs-modal-copy-btn:hover { background: #ffefa0; border-color: #d9be3f; }
     .docs-modal-disclaimer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; line-height: 1.45; }
     .chat-done-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .restart-btn { margin-top: 16px; align-self: center; }
@@ -159,7 +161,7 @@
         <div id="docsModalList" class="docs-modal-list"></div>
         <div class="docs-modal-actions">
           <button class="btn btn-primary" id="docsModalPrintBtn" type="button">Gerar PDF</button>
-          <button class="btn" id="docsModalCopyBtn" type="button">Copiar código do questionário</button>
+          <button class="btn docs-modal-copy-btn" id="docsModalCopyBtn" type="button">Copiar código do questionário</button>
         </div>
         <div class="docs-modal-disclaimer">Os documentos listados são uma sugestão baseada nas respostas feitas no questionário e podem haver diferenças com os documentos necessários de fato devido a atualizações dos requisitos dos Bombeiros.</div>
       </div>
@@ -575,7 +577,7 @@
       {id:"condominioPci", group:"Estrutura do imóvel / órgão público", label:"A unidade está integralmente contemplada no PCI do condomínio", dependsOn:"condominio", onlyRisk:"R3", note:"No Risco III, libera memorial de incêndio e planta do PCI do condomínio."},
       {id:"publico", group:"Estrutura do imóvel / órgão público", label:"É órgão público"},
       {id:"publicoLocado", group:"Estrutura do imóvel / órgão público", label:"O imóvel é locado por órgão público", dependsOn:"publico"},
-      {id:"historico", group:"Estrutura do imóvel / órgão público", label:"É imóvel histórico ou tombado", note:"A certidão/declaração cultural será acrescentada quando também houver recurso por inviabilidade técnica."},
+      {id:"historico", group:"Estrutura do imóvel / órgão público", label:"É imóvel histórico ou tombado", note:"A certidão/declaração cultural será incluída se houver inviabilidade técnica."},
       {id:"camaraFria", group:"Instalações e equipamentos", label:"Possui câmara fria"},
       {id:"glp", group:"Instalações e equipamentos", label:"Possui central / instalação de GLP"},
       {id:"gn", group:"Instalações e equipamentos", label:"Possui central / instalação de GN"},
@@ -596,9 +598,9 @@
       {id:"recurso", label:"Processo com Recurso para CIAT/CAT ou CSAT"},
       {id:"alteracao", label:"Alteração/correção de AVCB/AR vigente"},
       {id:"evento", label:"Processo relacionado a evento temporário"},
-      {id:"eventoPermanente", label:"O evento ocorre em edificação permanente", dependsOn:"evento", note:"Quando marcado, acrescenta o AR/AVCB da edificação permanente, salvo a exceção indicada na NT 1.01."},
-      {id:"simplificado", label:"Processo Simplificado"},
-      {id:"termoPermissao", label:"Existe Termo de Permissão"},
+      {id:"eventoPermanente", label:"O evento ocorre em edificação permanente", dependsOn:"evento", note:"Se o evento acontecer em um prédio ou local fixo, será necessário apresentar o AR/AVCB, exceto nos casos previstos na NT 1.01."},
+      {id:"simplificado", label:"O AVCB será feito por Processo Simplificado"},
+      {id:"termoPermissao", label:"Existe um Termo de Permissão"},
       {id:"rvt", label:"Foi solicitado Relatório de Vistoria Técnica — RVT"},
       {id:"laudo", label:"Existe Laudo de Exigência"},
       {id:"complementares", label:"Existem documentos complementares solicitados pelo CBMPE"}
@@ -1036,7 +1038,7 @@
 
     function renderAll(){renderConditions();renderClassification();renderDocuments();renderProgress();renderSelected();renderGroups();}
 
-    let toastTimer;function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200);}
+    let toastTimer;function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),4000);}
 
     $("#establishmentSelect").addEventListener("change",e=>{const previousAuto=autoConditionIdsForEstablishment();previousAuto.forEach(id=>state.conditions[id]=false);state.establishment=e.target.value;syncConditionalState();persist();renderAll();});
     $("#applyRecommendation").addEventListener("click",()=>{if(!flowComplete()){showToast("Complete todas as etapas obrigatórias antes de aplicar os documentos.");return;}applyDocs([...computeRecommended().keys()]);});
@@ -1460,7 +1462,9 @@
       markStepStart();
       const questionMark = /[?？]\s*$/.test(def.label.replace(/<[^>]+>/g, "").trim()) ? "" : "?";
       await addChatBubble("<strong>" + def.label + questionMark + "</strong>");
-      if (def.note) await addChatBubble("<small>" + def.note + "</small>");
+      // No chatbot, evitamos notas que mencionem o nível de risco (ex.: "No Risco III...")
+      // para manter o questionário fluido — essas notas continuam aparecendo no formulário admin.
+      if (def.note && !/\bRisco\s+[I1]{1,3}\b/i.test(def.note)) await addChatBubble("<small>" + def.note + "</small>");
       const prevVal = !!state.conditions[def.id];
       const savedIndex = chatCondIndex;
       const answer = async (val) => {
@@ -1860,7 +1864,8 @@ async function finishChat() {
     scrollToBottom();
   }
 
-  await addChatBubble("Clique no botão abaixo para entrar em contato com um técnico da Sá Moraes Engenharia e dar continuidade à validação do seu AVCB. Envie o PDF gerado em anexo para acelerar seu processo.");
+  await addChatBubble("Clique no botão abaixo para entrar em contato com um técnico da Sá Moraes Engenharia e dar continuidade à validação do seu AVCB.");
+  await addChatBubble("Envie o PDF gerado em anexo para acelerar seu processo.");
   const talkCta = el("div", "chat-cta-container");
   const talkBtn = el("button", "btn", "Falar com técnico");
   talkBtn.type = "button";
@@ -1872,11 +1877,21 @@ async function finishChat() {
     talkBtn.disabled = true;
     const msg = "Olá, me chamo " + (state.userName || "Visitante") + ".\nFiz a pré-análise do AVCB no site AVCB Pernambuco.\nGostaria de mais informações a respeito.\nO código gerado foi: " + docCode + ".";
     const wppLink = "https://wa.me/5581997460029?text=" + encodeURIComponent(msg);
+
+    // Abre uma aba em branco de forma síncrona, dentro do clique do usuário — navegadores
+    // bloqueiam window.open() chamado depois de um setTimeout/setInterval por não ser mais
+    // considerado uma ação direta do usuário (era esse o motivo de a página não abrir). A
+    // URL final só é definida quando a contagem regressiva termina.
+    const popup = window.open("", "_blank");
+
     const countdownBubble = el("div", "chat-bubble bot");
     chatMessages.append(countdownBubble);
-    scrollToBottom();
     let count = 5;
-    countdownBubble.innerHTML = "Você será redirecionado para o WhatsApp em <span id=\"wpp-countdown2\">" + count + "</span> segundos...";
+    countdownBubble.innerHTML = 'Você será redirecionado para o <a href="' + wppLink + '" target="_blank" rel="noopener">WhatsApp</a> em <span id="wpp-countdown2">' + count + '</span> segundos...';
+    scrollToBottom();
+
+    await addChatBubble("Caso a página não abra após 5 segundos, clique no hiperlink WhatsApp para ser direcionado para o técnico.");
+
     await new Promise(resolve => {
       const interval = setInterval(() => {
         count--;
@@ -1884,7 +1899,8 @@ async function finishChat() {
         if (span) span.textContent = count;
         if (count <= 0) {
           clearInterval(interval);
-          window.open(wppLink, "_blank");
+          if (popup && !popup.closed) { popup.location.href = wppLink; }
+          else { window.open(wppLink, "_blank"); }
           resolve();
         }
       }, 1000);
