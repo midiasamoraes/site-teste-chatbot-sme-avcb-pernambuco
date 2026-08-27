@@ -17,7 +17,8 @@
     body{margin:0;background:radial-gradient(circle at 88% 2%,rgba(205,163,72,.16),transparent 28rem),var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     button,input,select{font:inherit} button{cursor:pointer} a{color:var(--green2)}
     .shell{width:min(1220px,calc(100% - 28px));margin:0 auto;padding:28px 0 50px}
-    header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:18px;flex-wrap:wrap}
+    header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px;flex-wrap:wrap}
+    header>*:last-child{display:flex;justify-content:flex-end;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-left:auto;max-width:640px}
     .eyebrow{margin:0 0 8px;color:var(--green2);font-size:.76rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
     h1{margin:0;font:500 clamp(2.2rem,5vw,4.5rem)/.98 Georgia,"Times New Roman",serif;letter-spacing:-.045em}
     .subtitle{max-width:800px;margin:14px 0 0;color:var(--muted);line-height:1.55}
@@ -150,7 +151,7 @@
     .qr-modal-caption { margin-top: 8px; font-size: .78rem; color: var(--muted); max-width: 160px; }
     .chat-done-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .restart-btn { margin-top: 16px; align-self: center; }
-    @media(max-width:900px){header{flex-direction:column;align-items:stretch}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
+    @media(max-width:900px){header{flex-direction:column;align-items:stretch}header>*:first-child{flex:none!important}header>*:last-child{justify-content:flex-start!important;max-width:none!important;margin-left:0!important}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
     @media(max-width:600px){.shell{width:min(100% - 18px,1220px);padding-top:16px}.control-grid,.condition-grid,.group-grid{grid-template-columns:1fr}.source-banner{grid-template-columns:1fr}.source-icon{display:none}.panel-title-row{align-items:flex-start}.toolbar .btn{flex:1 1 auto}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
@@ -164,25 +165,27 @@
         <h1>Checklist documental</h1>
         <p class="subtitle">Lista consolidada de documentos e assistente de enquadramento por ocupação. O tipo A–Q identifica a ocupação; o nível de risco permanece informado manualmente e o pacote documental é montado pelas regras de risco, ocupação, características do estabelecimento e configurações do processo.</p>
       </div>
-      <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end;">
-        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
-          <label for="docCodeInput" style="font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);">Código do questionário</label>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="docCodeInput" placeholder="Cole o código aqui" autocomplete="off" style="min-height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; font-size:.78rem; width:170px; outline:none;">
-            <button class="btn" id="docCodeBtn" type="button" style="min-height:36px; padding:0 12px; font-size:.78rem;">Consultar</button>
+      <div style="display:flex; flex-direction:column; gap:14px; align-items:flex-end; max-width:640px; margin-left:auto;">
+        <div class="admin-only" style="display:flex; align-items:center;">
+          <div class="file-status" id="dbStatus">Conectando ao Supabase...</div>
+        </div>
+        <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end;">
+          <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
+            <label for="docCodeInput" style="font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);">Código do questionário</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="docCodeInput" placeholder="Cole o código aqui" autocomplete="off" style="min-height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; font-size:.78rem; width:170px; outline:none;">
+              <button class="btn" id="docCodeBtn" type="button" style="min-height:36px; padding:0 12px; font-size:.78rem;">Consultar</button>
+            </div>
+          </div>
+          <div style="align-self: flex-end; display: flex; flex-direction: column;">
+            <a href="?admin=1" class="btn chatbot-only" id="adminLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Acesso Admin</a>
+            <a href="?" class="btn admin-only" id="chatbotLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Chatbot</a>
           </div>
         </div>
-        <div class="progress-card admin-only" aria-live="polite" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div class="progress-card admin-only" aria-live="polite" style="display:flex; flex-direction:column; align-items:center; text-align:center; width:100%; max-width:260px;">
           <button class="btn" id="clearFormButton" type="button" style="margin-bottom: 12px; font-size: 0.75rem; background: #fdfdfc; color: #7a7f78; border-color: #e3e4df; width: 100%;">Limpar formulário</button>
           <span class="progress-number" id="progressNumber">0 / 0</span>
           <span class="progress-label">documentos marcados</span>
-        </div>
-        <div class="admin-only" style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; padding-bottom: 8px;">
-          <div class="file-status" id="dbStatus">Conectando ao Supabase...</div>
-        </div>
-        <div style="align-self: flex-start; display: flex; flex-direction: column;">
-          <a href="?admin=1" class="btn chatbot-only" id="adminLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Acesso Admin</a>
-          <a href="?" class="btn admin-only" id="chatbotLinkBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Chatbot</a>
         </div>
       </div>
     </header>
