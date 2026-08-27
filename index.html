@@ -60,7 +60,7 @@
     dialog{width:min(760px,calc(100% - 28px));max-height:86vh;border:1px solid var(--line);border-radius:18px;padding:0;background:var(--card);box-shadow:0 28px 80px rgba(0,0,0,.22)}dialog::backdrop{background:rgba(14,22,18,.42)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}.dialog-body{padding:16px 18px;max-height:62vh;overflow:auto}.dialog-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line)}.group-name{width:100%;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px}.dialog-docs{display:grid;gap:5px}.dialog-doc{display:flex;gap:8px;padding:7px;border-radius:8px;font-size:.75rem;line-height:1.35}.dialog-doc:hover{background:#f7f8f4}.dialog-doc input{accent-color:var(--green)}
     .toast{position:fixed;left:50%;top:50%;z-index:300;padding:20px 28px;border-radius:16px;background:#173e30;color:#fff;box-shadow:var(--shadow);font-size:1.05rem;font-weight:650;line-height:1.4;text-align:center;max-width:min(90vw,440px);opacity:0;transform:translate(-50%,-50%) scale(.94);pointer-events:none;transition:opacity 2s ease, transform 2s ease}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
     .admin-only { display: none !important; }
-    .chat-container { border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 65vh; min-height: 400px; margin-top: 16px; }
+    .chat-container { position: relative; border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 65vh; min-height: 400px; margin-top: 16px; }
     .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
     .chat-messages::before { content: ""; flex: 1 1 auto; }
     .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; animation: fadeIn 0.3s ease-out; }
@@ -75,6 +75,25 @@
     .chat-send-btn { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--green2); }
     .chat-send-btn svg { width: 14px; height: 14px; margin-left: -2px; margin-top: 1px; }
+    .chat-progress-ruler { max-height: 0; opacity: 0; overflow: hidden; margin-top: 0; padding: 0 4px; }
+    .chat-progress-ruler.revealed { animation: slideOpenRuler 2s ease forwards; }
+    .chat-progress-ruler.hiding { animation: slideCloseRuler 2s ease forwards; }
+    @keyframes slideOpenRuler { from { max-height: 0; opacity: 0; margin-top: 0; } to { max-height: 70px; opacity: 1; margin-top: 16px; } }
+    @keyframes slideCloseRuler { from { max-height: 70px; opacity: 1; margin-top: 16px; } to { max-height: 0; opacity: 0; margin-top: 0; } }
+    .chat-progress-ruler-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .chat-progress-ruler-title { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .chat-progress-ruler-pct { font-size: .82rem; font-weight: 700; color: var(--green2); }
+    .chat-progress-ruler-track { position: relative; height: 6px; border-radius: 999px; background: var(--line); margin: 0 6px 26px; }
+    .chat-progress-ruler-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; border-radius: 999px; background: var(--green2); transition: width .5s ease; }
+    .chat-progress-ruler-marker { position: absolute; top: -4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; border: 2px solid var(--line); box-sizing: border-box; transition: left .5s ease, border-color .3s ease, background .3s ease; }
+    .chat-progress-ruler-marker::after { content: attr(data-label); position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-size: .62rem; color: var(--muted); white-space: nowrap; font-weight: 600; }
+    .chat-progress-ruler-marker.active { border-color: var(--green2); background: var(--green2); }
+    .chat-progress-ruler-marker.active::after { color: var(--green2); }
+    .chat-inline-link-btn { display: inline; color: var(--green2); background: none; border: none; padding: 0; margin: 0; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+    .chat-inline-link-btn:hover { color: var(--green); }
+    .chat-inline-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--green2); font-size: .7rem; vertical-align: -4px; }
+    .chat-bubble.meta { align-self: center; background: #f4f5f1; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; font-size: .78rem; text-align: center; padding: 8px 14px; max-width: 90%; }
+    .chat-bubble.meta strong { color: var(--green2); }
     .chat-options { padding: 0 16px; display: flex; gap: 8px; background: #fff; min-height: 0; max-height: 0; opacity: 0; overflow: hidden; flex-wrap: nowrap; align-items: center; border-top: 1px solid transparent; }
     .chat-options.opened { animation: slideOpenOptions 2s ease forwards; }
     @keyframes slideOpenOptions { from { min-height: 0; max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border-top-color: transparent; } to { min-height: 52px; max-height: 150px; opacity: 1; padding-top: 8px; padding-bottom: 8px; border-top-color: var(--line); } }
@@ -86,7 +105,12 @@
     .chat-back-btn-fixed { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: .8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .2s; }
     .chat-back-btn-fixed:hover, .chat-back-btn-fixed:focus { background: #f4f5f1; color: var(--ink); border-color: #babdb6; }
     .chat-back-btn-fixed[hidden] { display: none; }
-    .chat-progress { padding: 8px 20px 0; font-size: 0.68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green2); opacity: .8; }
+    /* Botão de reiniciar: fixo no canto superior direito da caixa do chatbot. */
+    .chat-restart-btn { position: absolute; top: 12px; left: 12px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+    .chat-restart-btn:hover, .chat-restart-btn:focus { background: #f4f5f1; color: var(--ink); border-color: #babdb6; }
+    .chat-restart-btn.revealed { opacity: 1; pointer-events: auto; }
+    .chat-restart-btn[hidden] { display: none; }
+    .chat-progress { padding: 8px 20px 0 54px; font-size: 0.68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green2); opacity: .8; text-align: right; }
     .chat-inline-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
     .chat-inline-btn { text-align: left; padding: 8px 12px; border: 1px solid #cfe0d6; border-radius: 10px; background: #fff; color: var(--ink); font-size: .82rem; line-height: 1.3; cursor: pointer; transition: .15s; }
     .chat-inline-btn:disabled { cursor: default; opacity: .6; }
@@ -115,6 +139,15 @@
     .docs-modal-copy-btn { background: #fff4b8; border-color: #e5c94d; color: #735415; }
     .docs-modal-copy-btn:hover { background: #ffefa0; border-color: #d9be3f; }
     .docs-modal-disclaimer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; line-height: 1.45; }
+    .answers-modal-list { overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .answers-modal-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: .84rem; }
+    .answers-modal-row:last-child { border-bottom: none; }
+    .answers-modal-label { color: var(--ink); }
+    .answers-modal-value { color: var(--green2); font-weight: 700; white-space: nowrap; }
+    .qr-modal-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; padding: 6px 0 4px; }
+    .qr-modal-item { text-align: center; }
+    .qr-modal-svg svg { width: 160px; height: 160px; }
+    .qr-modal-caption { margin-top: 8px; font-size: .78rem; color: var(--muted); max-width: 160px; }
     .chat-done-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .restart-btn { margin-top: 16px; align-self: center; }
     @media(max-width:900px){header{flex-direction:column;align-items:stretch}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
@@ -133,7 +166,7 @@
       </div>
       <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end;">
         <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-          <label for="docCodeInput" style="font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);">Código de documentos</label>
+          <label for="docCodeInput" style="font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);">Código do questionário</label>
           <div style="display:flex; gap:6px;">
             <input type="text" id="docCodeInput" placeholder="Cole o código aqui" autocomplete="off" style="min-height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; font-size:.78rem; width:170px; outline:none;">
             <button class="btn" id="docCodeBtn" type="button" style="min-height:36px; padding:0 12px; font-size:.78rem;">Consultar</button>
@@ -162,13 +195,54 @@
         <div class="docs-modal-actions">
           <button class="btn btn-primary" id="docsModalPrintBtn" type="button">Gerar PDF</button>
           <button class="btn docs-modal-copy-btn" id="docsModalCopyBtn" type="button">Copiar código do questionário</button>
+          <button class="btn" id="docsModalAnswersBtn" type="button">Ver respostas</button>
+          <button class="btn" id="docsModalQrBtn" type="button">QR Codes</button>
         </div>
         <div class="docs-modal-disclaimer">Os documentos listados são uma sugestão baseada nas respostas feitas no questionário e podem haver diferenças com os documentos necessários de fato devido a atualizações dos requisitos dos Bombeiros.</div>
       </div>
     </div>
 
+    <div id="answersModalOverlay" class="docs-modal-overlay" hidden>
+      <div class="docs-modal" role="dialog" aria-modal="true" aria-labelledby="answersModalTitle">
+        <button class="docs-modal-close" id="answersModalClose" type="button" aria-label="Fechar">×</button>
+        <h3 id="answersModalTitle">Respostas do usuário</h3>
+        <div id="answersModalList" class="answers-modal-list"></div>
+      </div>
+    </div>
+
+    <div id="qrModalOverlay" class="docs-modal-overlay" hidden>
+      <div class="docs-modal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+        <button class="docs-modal-close" id="qrModalClose" type="button" aria-label="Fechar">×</button>
+        <h3 id="qrModalTitle">QR Codes</h3>
+        <div class="qr-modal-row">
+          <div class="qr-modal-item">
+            <div class="qr-modal-svg" id="qrModalPdf"></div>
+            <div class="qr-modal-caption">Ver documentos / gerar PDF pelo celular</div>
+          </div>
+          <div class="qr-modal-item">
+            <div class="qr-modal-svg" id="qrModalWpp"></div>
+            <div class="qr-modal-caption">Falar com um técnico no WhatsApp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="chatbotPanel">
+      <div class="chat-progress-ruler" id="chatProgressRuler">
+        <div class="chat-progress-ruler-top">
+          <span class="chat-progress-ruler-title">Progresso do questionário</span>
+          <span class="chat-progress-ruler-pct" id="chatProgressPercent">0%</span>
+        </div>
+        <div class="chat-progress-ruler-track">
+          <div class="chat-progress-ruler-fill" id="chatProgressFill"></div>
+          <span class="chat-progress-ruler-marker" id="chatMarker_risk" data-label="Risco"></span>
+          <span class="chat-progress-ruler-marker" id="chatMarker_estabelecimento" data-label="Estabelecimento"></span>
+          <span class="chat-progress-ruler-marker" id="chatMarker_instalacoes" data-label="Instalações"></span>
+          <span class="chat-progress-ruler-marker" id="chatMarker_processo" data-label="Processo"></span>
+        </div>
+      </div>
       <div class="chat-container">
+        <button class="chat-restart-btn" id="chatRestartBtn" type="button" title="Reiniciar o chatbot" hidden>&#8635;</button>
         <div class="chat-progress" id="chatProgress"></div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-options" id="chatOptions">
@@ -257,6 +331,7 @@
           <div class="recommendation-head">
             <h3>Documentos necessários <span class="selected-count" id="recommendationCount">—</span></h3>
             <button class="btn btn-primary" id="applyRecommendation" type="button">Aplicar</button>
+            <button class="btn" id="viewFullReportBtn" type="button">Ver relatório completo</button>
           </div>
           <div id="recommendationBody" class="recommendation-empty">Complete as etapas acima para visualizar a documentação.</div>
           
@@ -348,6 +423,2307 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
+    // ---- Biblioteca de geração de QR Code (kazuhikoarase/qrcode-generator, licença MIT) ----
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+    // ---- fim da biblioteca de QR Code ----
+
     const SOURCE_URLS = {
       nt: "https://www.bombeiros.pe.gov.br/images/legislacoes/2024/NORMA_TeCNICA_N1-01.pdf",
       coscip: "https://www.bombeiros.pe.gov.br/images/legislacoes/2025/DEC_19.644_13MARCO1997.pdf"
@@ -448,26 +2824,88 @@
         .join(" ");
     }
 
-    // Código hexadecimal por documento — cada documento recebe um código de 3 dígitos
-    // hexadecimais (posição dele na lista `documents`, suficiente para até 4096 documentos).
-    // A concatenação dos códigos de todos os documentos recomendados forma o "código do
-    // questionário", que pode ser colado depois para reconstituir a mesma lista.
-    const DOC_HEX_LEN = 3;
-    function docHexCode(id) {
-      const idx = documents.findIndex(d => d.id === id);
-      return idx < 0 ? null : idx.toString(16).toUpperCase().padStart(DOC_HEX_LEN, "0");
+    // Código hexadecimal do questionário — em vez de codificar a lista de documentos
+    // (que dependia da posição de cada item na lista `documents`, quebrando se ela mudasse),
+    // o código agora guarda as RESPOSTAS: estabelecimento, nível de risco e cada condição
+    // (Sim/Não) do questionário, numa ordem fixa (`ANSWER_SCHEMA`). Ao decodificar, os
+    // documentos são recalculados do zero com `computeRecommendedForAnswers()` — o mesmo
+    // motor de recomendação usado ao vivo — o que também permite reconstituir e mostrar
+    // as respostas dadas, não só o resultado final.
+    // `conditionDefs`/`defaultConditions` só são definidas mais abaixo — usamos uma função
+    // (calculada e guardada em cache na primeira chamada) em vez de um const direto, para
+    // não depender da ordem de declaração no arquivo.
+    let _answerSchemaCache = null;
+    function getAnswerSchema() {
+      if (!_answerSchemaCache) _answerSchemaCache = conditionDefs.filter(c => !c.none).map(c => c.id);
+      return _answerSchemaCache;
     }
-    function encodeDocCode(ids) {
-      return ids.map(docHexCode).filter(Boolean).join("");
-    }
-    function decodeDocCode(code) {
-      const clean = (code || "").trim().toUpperCase().replace(/[^0-9A-F]/g, "");
-      const ids = [];
-      for (let i = 0; i + DOC_HEX_LEN <= clean.length; i += DOC_HEX_LEN) {
-        const idx = parseInt(clean.slice(i, i + DOC_HEX_LEN), 16);
-        if (!isNaN(idx) && documents[idx]) ids.push(documents[idx].id);
+    const ANSWER_RISK_CODES = { "": "0", R1: "1", R2: "2", R3: "3" };
+    const ANSWER_RISK_CODES_REV = { "0": "", "1": "R1", "2": "R2", "3": "R3" };
+
+    function encodeAnswerCode(fromState) {
+      const s = fromState || state;
+      const estIdx = establishments.findIndex(e => e.id === s.establishment);
+      const estPart = (estIdx < 0 ? 0 : estIdx + 1).toString(16).toUpperCase().padStart(3, "0");
+      const riskPart = ANSWER_RISK_CODES[s.risk] || "0";
+      let bits = "";
+      getAnswerSchema().forEach(id => { bits += (s.conditions && s.conditions[id]) ? "1" : "0"; });
+      while (bits.length % 4 !== 0) bits += "0";
+      let condPart = "";
+      for (let i = 0; i < bits.length; i += 4) {
+        condPart += parseInt(bits.slice(i, i + 4), 2).toString(16).toUpperCase();
       }
-      return ids;
+      return estPart + riskPart + condPart;
+    }
+
+    // Retorna null se o código for inválido/vazio, ou { establishment, risk, conditions }.
+    function decodeAnswerCode(code) {
+      const clean = (code || "").trim().toUpperCase().replace(/[^0-9A-F]/g, "");
+      if (clean.length < 4) return null;
+      const estIdx = parseInt(clean.slice(0, 3), 16) - 1;
+      const establishment = estIdx >= 0 && establishments[estIdx] ? establishments[estIdx].id : "";
+      const risk = ANSWER_RISK_CODES_REV[clean.slice(3, 4)] || "";
+      const condPart = clean.slice(4);
+      let bits = "";
+      for (let i = 0; i < condPart.length; i++) {
+        bits += parseInt(condPart[i], 16).toString(2).padStart(4, "0");
+      }
+      const conditions = { ...defaultConditions };
+      getAnswerSchema().forEach((id, i) => { conditions[id] = bits[i] === "1"; });
+      return { establishment, risk, conditions };
+    }
+
+    // Roda computeRecommended() sobre um objeto de respostas arbitrário (ex.: vindo de um
+    // código colado) sem alterar o `state` ao vivo do formulário/chatbot em uso.
+    function computeRecommendedForAnswers(answers) {
+      const savedState = state;
+      state = { ...savedState, establishment: answers.establishment, risk: answers.risk, conditions: { ...defaultConditions, ...answers.conditions } };
+      try {
+        return computeRecommended();
+      } finally {
+        state = savedState;
+      }
+    }
+
+    function answersFromLiveState() {
+      return { establishment: state.establishment, risk: state.risk, conditions: { ...state.conditions } };
+    }
+
+    // Monta uma lista legível ("Pergunta — Sim/Não") a partir de um objeto de respostas,
+    // usada pelo modal "Respostas do usuário".
+    function describeAnswers(answers) {
+      const lines = [];
+      const est = establishments.find(e => e.id === answers.establishment);
+      lines.push({ label: "Estabelecimento", value: est ? est.label : "Não informado" });
+      const riskLabel = { R1: "Risco I", R2: "Risco II", R3: "Risco III" }[answers.risk] || "Não avaliado";
+      lines.push({ label: "Nível de risco", value: riskLabel });
+      conditionDefs.forEach(c => {
+        if (c.none) return;
+        if (!answers.conditions[c.id]) return;
+        const div = document.createElement("div");
+        div.innerHTML = c.label;
+        lines.push({ label: div.textContent, value: "Sim" });
+      });
+      return lines;
     }
 
     const occupationTypes = {
@@ -1036,12 +3474,13 @@
     function openGroupDialog(group=null){editingGroupId=group?.id||null;$("#groupDialogTitle").textContent=group?"Editar grupo":"Criar grupo";$("#groupName").value=group?.name||"";const box=$("#dialogDocs");box.replaceChildren();documents.forEach(d=>{const lab=el("label","dialog-doc");const i=document.createElement("input");i.type="checkbox";i.value=d.id;i.checked=group?.docs?.includes(d.id)||false;lab.append(i,el("span","",d.title));box.append(lab)});$("#groupDialog").showModal();}
     function saveCustomGroup(){const name=$("#groupName").value.trim();const docs=[...$("#dialogDocs").querySelectorAll("input:checked")].map(i=>i.value);if(!name||!docs.length){showToast("Informe um nome e selecione ao menos um documento.");return false;}if(editingGroupId)state.customGroups=state.customGroups.map(g=>g.id===editingGroupId?{...g,name,docs}:g);else state.customGroups.push({id:crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`,name,docs});persist();return true;}
 
-    function renderAll(){renderConditions();renderClassification();renderDocuments();renderProgress();renderSelected();renderGroups();}
+    function renderAll(){renderConditions();renderClassification();renderDocuments();renderProgress();renderSelected();renderGroups();if(typeof renderProgressRuler==="function")renderProgressRuler();}
 
     let toastTimer;function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),4000);}
 
     $("#establishmentSelect").addEventListener("change",e=>{const previousAuto=autoConditionIdsForEstablishment();previousAuto.forEach(id=>state.conditions[id]=false);state.establishment=e.target.value;syncConditionalState();persist();renderAll();});
     $("#applyRecommendation").addEventListener("click",()=>{if(!flowComplete()){showToast("Complete todas as etapas obrigatórias antes de aplicar os documentos.");return;}applyDocs([...computeRecommended().keys()]);});
+    $("#viewFullReportBtn")?.addEventListener("click",()=>{const rec=computeRecommended();openDocsModal([...rec.entries()],{printRec:rec,answers:answersFromLiveState()});});
     $("#createGroupButton").addEventListener("click",()=>openGroupDialog());
     $("#groupForm").addEventListener("submit",e=>{if(e.submitter?.value!=="default")return;if(!saveCustomGroup()){e.preventDefault();return;}showToast("Grupo salvo.");setTimeout(renderAll,0);});
     $("#fallbackFileInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{if(!confirm("Importar o arquivo substituirá os dados atuais. Continuar?"))return;state=parseBackup(await f.text());persist();renderAll();showToast("Importado.");}catch{showToast("Arquivo inválido.");}finally{e.target.value="";}});
@@ -1069,8 +3508,10 @@
       document.querySelectorAll(".chatbot-only").forEach(el => el.style.display = "none");
     }
 
-    let chatState = "ESTAB"; // ESTAB, RISK, COND
+    let chatState = "ESTAB"; // NAME, ESTAB, RISK, COND
     let chatHistory = []; // pilha de respostas para permitir "Voltar"
+    let chatEstabStepMsgCount = 0; // nº de bolhas antes da pergunta do estabelecimento (para o "Voltar")
+    let chatEpoch = 0; // incrementado a cada "Reiniciar" para invalidar sequências de bolhas/perguntas já em andamento
     let chatRiskIndex = 0;
     let chatCondIndex = 0;
     const chatMessages = $("#chatMessages");
@@ -1078,11 +3519,74 @@
     const chatOptions = $("#chatOptions");
     const chatOptionsScroll = $("#chatOptionsScroll");
     const chatBackBtn = $("#chatBackBtn");
+    const chatRestartBtn = $("#chatRestartBtn");
     const chatInputArea = $("#chatInputArea");
     let chatMultiSelectConfirm = null; // quando definido, Enviar/Enter confirma uma seleção múltipla em vez de responder normalmente
     let chatCurrentStepMsgCountBefore = 0; // nº de bolhas de chat antes da pergunta atual começar (para o "Voltar")
+    let chatFinishRec = null; // Map de documentos calculada no fim do questionário — usada pelos botões "Documentos AVCB" embutidos no texto
+    let chatFinishAnswers = null; // respostas correspondentes a chatFinishRec
+
+    // Os botões "Documentos AVCB" embutidos no meio do texto das bolhas (ver finishChat)
+    // usam delegação de evento, já que aparecem em mais de uma bolha ao mesmo tempo.
+    chatMessages.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chat-inline-docs-open");
+      if (!btn || !chatFinishRec) return;
+      openDocsModal([...chatFinishRec.entries()], { printRec: chatFinishRec, answers: chatFinishAnswers });
+    });
 
     chatBackBtn.addEventListener("click", () => chatGoBack());
+
+    // Botão "Reiniciar": fica fixo no canto superior direito da caixa do chatbot,
+    // visível sempre que houver histórico para voltar; aparece/desaparece com um
+    // fade de 2 segundos (mesma duração para entrar e para sair).
+    let chatRestartHideTimer = null;
+    function showRestartBtn() {
+      if (!chatRestartBtn) return;
+      if (chatRestartHideTimer) { clearTimeout(chatRestartHideTimer); chatRestartHideTimer = null; }
+      chatRestartBtn.hidden = false;
+      void chatRestartBtn.offsetWidth; // força o navegador a aplicar o estado inicial antes de animar
+      chatRestartBtn.classList.add("revealed");
+    }
+    function hideRestartBtn() {
+      if (!chatRestartBtn) return;
+      chatRestartBtn.classList.remove("revealed");
+      if (chatRestartHideTimer) clearTimeout(chatRestartHideTimer);
+      chatRestartHideTimer = setTimeout(() => {
+        chatRestartBtn.hidden = true;
+        chatRestartHideTimer = null;
+      }, 2000);
+    }
+    chatRestartBtn?.addEventListener("click", () => restartChat());
+
+    async function restartChat() {
+      chatEpoch++;
+      if (chatRestartHideTimer) { clearTimeout(chatRestartHideTimer); chatRestartHideTimer = null; }
+      if (chatRestartBtn) { chatRestartBtn.classList.remove("revealed"); chatRestartBtn.hidden = true; }
+      chatHistory = [];
+      chatMultiSelectConfirm = null;
+      chatRiskIndex = 0;
+      chatCondIndex = 0;
+      chatFinishRec = null;
+      chatFinishAnswers = null;
+      state.userName = "";
+      state.establishment = "";
+      state.conditions = {};
+      if (typeof resetProgressTracking === "function") resetProgressTracking();
+      if (typeof hideProgressRuler === "function") hideProgressRuler();
+      syncConditionalState(); persist(); renderAll();
+      chatMessages.replaceChildren();
+      clearChatOptions();
+      chatInputArea.style.display = "";
+      chatInput.disabled = false;
+      chatInput.value = "";
+      chatState = "NAME";
+      updateBackButton();
+      await addChatBubble("Olá! Sou o assistente virtual da Sá Moraes Engenharia. Pode me chamar de Sara.");
+      await addChatBubble("Posso te ajudar a descobrir quais documentos você precisa providenciar para a regularização do AVCB.");
+      await addChatBubble("Qual é o seu nome?");
+      chatInput.placeholder = "Digite o seu nome...";
+      chatInput.focus();
+    }
 
     let isDown = false; let startX; let scrollLeft; let isDragging = false;
     chatOptionsScroll.addEventListener('mousedown', (e) => {
@@ -1184,8 +3688,11 @@
               addChatBubble(name, false);
               chatInput.value = "";
               chatState = "ESTAB";
-              
+              chatHistory.push({ phase: "name", msgCountBefore: 0 });
+              updateBackButton();
+
               const runNext = async () => {
+                 chatEstabStepMsgCount = chatMsgCount();
                  await addChatBubble(`Olá ${name}. Vou lhe fazer algumas perguntas para descobrirmos quais documentos você precisa para fazer o seu AVCB.`);
                  await addChatBubble("Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)");
                  chatInput.placeholder = "Digite o tipo de estabelecimento para buscar...";
@@ -1217,29 +3724,34 @@
       chatInput.dispatchEvent(e);
     });
     
-    function addChatBubble(text, isBot=true) {
+    function addChatBubble(text, isBot=true, extraClass) {
+      const epoch = chatEpoch;
       return new Promise(resolve => {
-        const b = el("div", "chat-bubble " + (isBot ? "bot" : "user"));
+        const b = el("div", "chat-bubble " + (isBot ? "bot" : "user") + (extraClass ? " " + extraClass : ""));
         chatMessages.append(b);
         setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
-        
+
         if (isBot) {
           let dots = 1;
           b.innerHTML = '<span style="font-family: monospace; font-size: 1.2rem; line-height: 0.5;">.</span>';
           const waitTime = Math.floor(Math.random() * 700) + 800;
-          
+
           const interval = setInterval(() => {
             dots = (dots % 3) + 1;
             b.innerHTML = '<span style="font-family: monospace; font-size: 1.2rem; line-height: 0.5;">' + ".".repeat(dots) + '</span>';
           }, 250);
-          
+
           setTimeout(() => {
             clearInterval(interval);
+            // Se o chat foi reiniciado enquanto essa bolha "digitava", descarta-a em vez
+            // de mostrar texto de uma pergunta/fluxo que não existe mais.
+            if (epoch !== chatEpoch) { b.remove(); resolve(); return; }
             b.innerHTML = text;
             setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 10);
             resolve();
           }, waitTime);
         } else {
+          if (epoch !== chatEpoch) { b.remove(); resolve(); return; }
           b.innerHTML = text;
           resolve();
         }
@@ -1260,7 +3772,11 @@
       chatMultiSelectConfirm = null;
       updateBackButton();
     }
-    function updateBackButton() { chatBackBtn.hidden = chatHistory.length === 0; }
+    function updateBackButton() {
+      const visible = chatHistory.length > 0;
+      chatBackBtn.hidden = !visible;
+      if (visible) showRestartBtn(); else hideRestartBtn();
+    }
 
     function addChatOption(label, onClick, extraClass) {
       if (!chatOptions.classList.contains('opened')) {
@@ -1282,8 +3798,11 @@
     // 100% fiel) e refaz a pergunta anterior, destacando-a de novo. Pode ser usado repetidas
     // vezes seguidas, uma etapa de cada vez.
     function chatGoBack() {
+      // Invalida qualquer sequência de bolhas ainda "em andamento" (ex.: o bot ainda
+      // digitando a próxima pergunta) para que ela não reapareça depois do Voltar.
+      chatEpoch++;
       const entry = chatHistory.pop();
-      if (!entry) { trimMessagesTo(chatCurrentStepMsgCountBefore); updateBackButton(); return; }
+      if (!entry) { trimMessagesTo(chatCurrentStepMsgCountBefore); updateBackButton(); hideProgressRuler(); resetProgressTracking(); return; }
       trimMessagesTo(entry.msgCountBefore);
       updateBackButton();
       if (entry.phase === "risk") {
@@ -1302,6 +3821,44 @@
         chatCondIndex = entry.index;
         syncConditionalState(); persist(); renderAll();
         advanceCond();
+      } else if (entry.phase === "estab") {
+        hideProgressRuler(); resetProgressTracking();
+        state.establishment = "";
+        chatState = "ESTAB";
+        syncConditionalState(); persist(); renderAll();
+        chatInput.disabled = false;
+        chatInput.value = "";
+        chatInput.focus();
+        clearChatOptions();
+        updateBackButton();
+        (async () => {
+          const _epoch = chatEpoch;
+          chatEstabStepMsgCount = chatMsgCount();
+          await addChatBubble(`Olá ${state.userName}. Vou lhe fazer algumas perguntas para descobrirmos quais documentos você precisa para fazer o seu AVCB.`);
+          if (_epoch !== chatEpoch) return;
+          await addChatBubble("Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)");
+          if (_epoch !== chatEpoch) return;
+          chatInput.placeholder = "Digite o tipo de estabelecimento para buscar...";
+        })();
+      } else if (entry.phase === "name") {
+        state.userName = "";
+        chatState = "NAME";
+        persist(); renderAll();
+        chatInput.disabled = false;
+        chatInput.value = "";
+        chatInput.focus();
+        clearChatOptions();
+        updateBackButton();
+        (async () => {
+          const _epoch = chatEpoch;
+          await addChatBubble("Olá! Sou o assistente virtual da Sá Moraes Engenharia. Pode me chamar de Sara.");
+          if (_epoch !== chatEpoch) return;
+          await addChatBubble("Posso te ajudar a descobrir quais documentos você precisa providenciar para a regularização do AVCB.");
+          if (_epoch !== chatEpoch) return;
+          await addChatBubble("Qual é o seu nome?");
+          if (_epoch !== chatEpoch) return;
+          chatInput.placeholder = "Digite o seu nome...";
+        })();
       } else {
         state.conditions[entry.id] = entry.prevVal;
         chatCondIndex = entry.index;
@@ -1320,6 +3877,7 @@
     };
 
     async function askRisk() {
+      const _epoch = chatEpoch;
       chatState = "RISK";
       chatRiskIndex = 0;
       setChatPhase("Etapa 1 de 4 — Nível de risco");
@@ -1333,6 +3891,21 @@
       // ocupações do Tipo A (residencial privativa unifamiliar / vila). Para tipos
       // claramente incompatíveis (hospital, loja, escola etc.) ela é pulada.
       const est = getEstablishment();
+
+      if (chatCurrentStage === null) {
+        resetProgressTracking();
+        showProgressRuler();
+        await addChatBubble(timeEstimateMessage());
+        if (_epoch !== chatEpoch) return;
+        await addChatBubble("Você pode clicar em <span class='chat-inline-icon'>◀</span> para voltar para a pergunta anterior a qualquer momento.");
+        if (_epoch !== chatEpoch) return;
+        await addChatBubble("Ou clicar em <span class='chat-inline-icon'>&#8635;</span> para reiniciar o chatbot.");
+        if (_epoch !== chatEpoch) return;
+        await announceStageIfNeeded("risk");
+        if (_epoch !== chatEpoch) return;
+      }
+      if (_epoch !== chatEpoch) return;
+
       if (est && est.type !== "A") {
         advanceRisk();
         return;
@@ -1340,6 +3913,7 @@
 
       markStepStart();
       await addChatBubble("O estabelecimento é uma <strong>residência unifamiliar (casa isolada)</strong>?");
+      if (_epoch !== chatEpoch) return;
 
       addChatOption("Sim", async () => {
         clearChatOptions();
@@ -1348,16 +3922,20 @@
         state.conditions.isRisco1 = true;
         syncConditionalState();
         persist(); renderAll();
+        hideProgressRuler();
         askToContact("Requerimento para emissão da DDLCB");
       });
       addChatOption("Não", async () => {
         clearChatOptions();
         await addChatBubble("Não", false);
+        stageAnsweredCount.risk = Math.max(stageAnsweredCount.risk, 1);
+        renderAll();
         advanceRisk();
       });
     }
 
     async function advanceRisk() {
+      const _epoch = chatEpoch;
       if (chatRiskIndex >= CHAT_RISK_ORDER.length) {
         state.conditions.noneRisk = true;
         syncConditionalState(); persist(); renderAll();
@@ -1373,6 +3951,7 @@
       clearChatOptions();
       markStepStart();
       await addChatBubble(RISK_QUESTION_TEXT[id]);
+      if (_epoch !== chatEpoch) return;
       const savedIndex = chatRiskIndex;
       addChatOption("Sim", async () => {
         clearChatOptions();
@@ -1380,6 +3959,7 @@
         state.conditions[id] = true;
         syncConditionalState();
         pushChatHistory({ phase: "risk", index: savedIndex, id, prevVal: false });
+        stageAnsweredCount.risk = Math.max(stageAnsweredCount.risk, savedIndex + 1);
         persist(); renderAll();
         startCondPhase();
       });
@@ -1387,8 +3967,10 @@
         clearChatOptions();
         await addChatBubble("Não", false);
         pushChatHistory({ phase: "risk", index: savedIndex, id, prevVal: false });
+        stageAnsweredCount.risk = Math.max(stageAnsweredCount.risk, savedIndex + 1);
         chatRiskIndex = savedIndex + 1;
         persist();
+        renderAll();
         advanceRisk();
       });
     }
@@ -1410,6 +3992,125 @@
     const INSTALL_BATCH_IDS = ["camaraFria", "elevador", "gerador", "spda", "glp", "gn"];
     const CHAT_STRUCTURAL_IDS = ["pessoaFisica", "mei", "publico", "publicoLocado", "condominio", "condominioPci", "procuracao", "historico"];
     const CHAT_INSTALL_IDS = ["__INSTALACOES__", "__GNV__", "casaNoturna", "palco", "trio"];
+
+    // ---- Barra de progresso (régua) + mensagens de bloco + estimativa de tempo ----
+    let stageAnsweredCount = { risk: 0, estabelecimento: 0, instalacoes: 0, processo: 0 };
+    let chatCurrentStage = null;
+    let chatAnnouncedStage = null;
+
+    function resetProgressTracking() {
+      stageAnsweredCount = { risk: 0, estabelecimento: 0, instalacoes: 0, processo: 0 };
+      chatCurrentStage = null;
+      chatAnnouncedStage = null;
+    }
+
+    function stageOfCondKey(key) {
+      if (CHAT_STRUCTURAL_IDS.includes(key)) return "estabelecimento";
+      if (CHAT_INSTALL_IDS.includes(key)) return "instalacoes";
+      return "processo";
+    }
+
+    function estimateStageTotals() {
+      const est = getEstablishment();
+      const riskTotal = (est && est.type === "A") ? CHAT_RISK_ORDER.length + 1 : CHAT_RISK_ORDER.length;
+      const autoIds = new Set(autoConditionIdsForEstablishment());
+      const totals = { risk: Math.max(riskTotal, 1), estabelecimento: 0, instalacoes: 0, processo: 0 };
+      CHAT_COND_ORDER.forEach(key => {
+        if (key === "__INSTALACOES__") { totals.instalacoes += INSTALL_GROUPS.length; return; }
+        if (key === "__GNV__") { if (!autoIds.has("postoGnv")) totals.instalacoes += 1; return; }
+        const def = establishmentConditionDefs.find(c => c.id === key) || processConditionDefs.find(c => c.id === key);
+        if (!def || autoIds.has(key) || !conditionVisible(def)) return;
+        totals[stageOfCondKey(key)] += 1;
+      });
+      return totals;
+    }
+
+    function computeQuestionnaireProgress() {
+      const stages = ["risk", "estabelecimento", "instalacoes", "processo"];
+      const totals = estimateStageTotals();
+      const totalQ = stages.reduce((s, k) => s + totals[k], 0) || 1;
+      const answeredQ = stages.reduce((s, k) => s + Math.min(stageAnsweredCount[k], totals[k] || 0), 0);
+      const percent = Math.max(0, Math.min(100, Math.round(100 * answeredQ / totalQ)));
+      let cum = 0;
+      const markerPos = {};
+      stages.forEach(k => { cum += totals[k]; markerPos[k] = Math.round(100 * cum / totalQ); });
+      return { percent, markerPos, totals };
+    }
+
+    function renderProgressRuler() {
+      const fill = $("#chatProgressFill");
+      const pctLabel = $("#chatProgressPercent");
+      if (!fill) return;
+      const { percent, markerPos } = computeQuestionnaireProgress();
+      fill.style.width = percent + "%";
+      if (pctLabel) pctLabel.textContent = percent + "%";
+      ["risk", "estabelecimento", "instalacoes", "processo"].forEach(k => {
+        const m = $("#chatMarker_" + k);
+        if (!m) return;
+        const pos = Math.max(3, Math.min(97, markerPos[k]));
+        m.style.left = pos + "%";
+        m.classList.toggle("active", chatCurrentStage === k);
+      });
+    }
+
+    function showProgressRuler() {
+      const wrap = $("#chatProgressRuler");
+      if (!wrap) return;
+      wrap.classList.remove("hiding");
+      if (!wrap.classList.contains("revealed")) wrap.classList.add("revealed");
+    }
+    function hideProgressRuler() {
+      const wrap = $("#chatProgressRuler");
+      if (!wrap) return;
+      wrap.classList.remove("revealed");
+      wrap.classList.remove("hiding");
+    }
+
+    async function addMetaBubble(text) {
+      return addChatBubble(text, true, "meta");
+    }
+
+    const STAGE_MESSAGES = {
+      risk: { intro: "Vamos começar pelo <strong>nível de risco</strong> do estabelecimento." },
+      estabelecimento: { outro: "Nível de risco definido.", intro: "Agora, algumas perguntas sobre as <strong>características do estabelecimento</strong>." },
+      instalacoes: { outro: "Características do estabelecimento registradas.", intro: "Vamos falar sobre <strong>instalações e situações especiais</strong>." },
+      processo: { outro: "Instalações registradas.", intro: "Últimas perguntas, sobre <strong>configurações do processo</strong>." }
+    };
+
+    async function announceStageIfNeeded(stage) {
+      if (chatAnnouncedStage === stage) return;
+      const _epoch = chatEpoch;
+      const prev = chatAnnouncedStage;
+      if (prev && STAGE_MESSAGES[prev] && STAGE_MESSAGES[prev].outro) {
+        await addMetaBubble(STAGE_MESSAGES[prev].outro);
+        if (_epoch !== chatEpoch) return;
+      }
+      if (STAGE_MESSAGES[stage] && STAGE_MESSAGES[stage].intro) {
+        await addMetaBubble(STAGE_MESSAGES[stage].intro);
+        if (_epoch !== chatEpoch) return;
+      }
+      chatAnnouncedStage = stage;
+      chatCurrentStage = stage;
+      renderProgressRuler();
+    }
+
+    let chatLastDocCount = null;
+    async function maybeAnnounceDocCount() {
+      try {
+        const rec = computeRecommended();
+        const count = rec.size;
+        if (chatLastDocCount !== null && count !== chatLastDocCount) {
+          await addMetaBubble("Documentos identificados até agora: <strong>" + count + "</strong>");
+        }
+        chatLastDocCount = count;
+      } catch (e) { /* noop */ }
+    }
+
+    function timeEstimateMessage() {
+      const est = getEstablishment();
+      const minutes = (est && est.type === "A") ? "6 a 9 minutos" : "4 a 6 minutos";
+      return "O preenchimento leva cerca de " + minutes + ".";
+    }
 
     function chatPhaseLabelFor(key) {
       if (CHAT_STRUCTURAL_IDS.includes(key)) return "Etapa 2 de 4 — Características do estabelecimento";
@@ -1453,7 +4154,9 @@
     }
 
     async function askCondQuestion(def) {
+      const _epoch = chatEpoch;
       setChatPhase(chatPhaseLabelFor(def.id));
+      await announceStageIfNeeded(stageOfCondKey(def.id));
       chatInput.disabled = false;
       chatInput.value = "";
       chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
@@ -1465,6 +4168,7 @@
       // No chatbot, evitamos notas que mencionem o nível de risco (ex.: "No Risco III...")
       // para manter o questionário fluido — essas notas continuam aparecendo no formulário admin.
       if (def.note && !/\bRisco\s+[I1]{1,3}\b/i.test(def.note)) await addChatBubble("<small>" + def.note + "</small>");
+      if (_epoch !== chatEpoch) return;
       const prevVal = !!state.conditions[def.id];
       const savedIndex = chatCondIndex;
       const answer = async (val) => {
@@ -1474,7 +4178,9 @@
         syncConditionalState();
         pushChatHistory({ phase: "cond", index: savedIndex, id: def.id, prevVal });
         chatCondIndex = savedIndex + 1;
+        stageAnsweredCount[stageOfCondKey(def.id)] += 1;
         persist(); renderAll();
+        await maybeAnnounceDocCount();
         advanceCond();
       };
       addChatOption("Sim", () => answer(true));
@@ -1491,8 +4197,11 @@
     ];
 
     async function askInstallGroups() {
+      const _epoch = chatEpoch;
       chatState = "COND";
       setChatPhase(chatPhaseLabelFor("__INSTALACOES__"));
+      await announceStageIfNeeded("instalacoes");
+      if (_epoch !== chatEpoch) return;
       clearChatOptions();
       markStepStart();
       const savedIndex = chatCondIndex;
@@ -1507,8 +4216,10 @@
         syncConditionalState();
         pushChatHistory({ phase: "batch", index: savedIndex, ids: allIds, prevVals });
         chatCondIndex = savedIndex + 1;
+        stageAnsweredCount.instalacoes += INSTALL_GROUPS.length;
         persist(); renderAll();
         chatInput.disabled = false;
+        await maybeAnnounceDocCount();
         advanceCond();
       };
 
@@ -1528,6 +4239,7 @@
         chatInput.focus();
 
         await addChatBubble("Selecione as opções que se aplicam, depois clique em <strong>Enviar</strong>:");
+        if (_epoch !== chatEpoch) return;
         const bubble = el("div", "chat-bubble bot");
         chatMessages.append(bubble);
 
@@ -1578,13 +4290,17 @@
     // "É posto de abastecimento de GNV?" — a segunda pergunta só existia para desdobrar a
     // primeira, então agora as duas condições (gnv e postoGnv) são definidas de uma vez.
     async function askGnvQuestion() {
+      const _epoch = chatEpoch;
       chatState = "COND";
       setChatPhase(chatPhaseLabelFor("__GNV__"));
+      await announceStageIfNeeded("instalacoes");
+      if (_epoch !== chatEpoch) return;
       chatInput.disabled = true;
       chatInput.placeholder = "Selecione uma opção acima...";
       clearChatOptions();
       markStepStart();
       await addChatBubble("<strong>Sua atividade envolve gás natural veicular (GNV)?</strong>");
+      if (_epoch !== chatEpoch) return;
       const savedIndex = chatCondIndex;
       const prevGnv = !!state.conditions.gnv;
       const prevPosto = !!state.conditions.postoGnv;
@@ -1596,8 +4312,10 @@
         syncConditionalState();
         pushChatHistory({ phase: "gnv", index: savedIndex, prevGnv, prevPosto });
         chatCondIndex = savedIndex + 1;
+        stageAnsweredCount.instalacoes += 1;
         persist(); renderAll();
         chatInput.disabled = false;
+        await maybeAnnounceDocCount();
         advanceCond();
       };
       addChatOption("Não utiliza GNV", () => choose("Não utiliza GNV", false, false));
@@ -1617,6 +4335,7 @@ function groupDocEntries(entries) {
 function renderDocsModalList(entries) {
   const list = $("#docsModalList");
   list.replaceChildren();
+  $("#docsModalTitle").textContent = "Documentos necessários (" + entries.length + ")";
   if (!entries.length) { list.append(el("div", "recommendation-empty", "Nenhum documento foi associado a este código/resposta.")); return; }
   groupDocEntries(entries).forEach(([id, meta]) => {
     const d = docById[id];
@@ -1636,19 +4355,82 @@ function renderDocsModalList(entries) {
 }
 
 let docsModalRec = null; // Map usada pelo botão "Gerar PDF" do modal
+let docsModalAnswers = null; // { establishment, risk, conditions } usadas para gerar esta lista — base do código, das respostas e dos QR Codes
 function openDocsModal(entries, opts = {}) {
   docsModalRec = opts.printRec || new Map(entries);
+  docsModalAnswers = opts.answers || answersFromLiveState();
   renderDocsModalList(entries);
   $("#docsModalOverlay").hidden = false;
 }
 function closeDocsModal() {
   $("#docsModalOverlay").hidden = true;
   docsModalRec = null;
+  docsModalAnswers = null;
 }
 $("#docsModalClose").addEventListener("click", closeDocsModal);
 $("#docsModalOverlay").addEventListener("click", (e) => { if (e.target.id === "docsModalOverlay") closeDocsModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#docsModalOverlay").hidden) closeDocsModal(); });
-$("#docsModalPrintBtn").addEventListener("click", () => { if (docsModalRec) printChecklist(docsModalRec); });
+$("#docsModalPrintBtn").addEventListener("click", () => { if (docsModalRec) printChecklist(docsModalRec, docsModalAnswers); });
+
+function openAnswersModal() {
+  if (!docsModalAnswers) return;
+  const list = $("#answersModalList");
+  list.replaceChildren();
+  describeAnswers(docsModalAnswers).forEach(line => {
+    const row = el("div", "answers-modal-row");
+    row.append(el("span", "answers-modal-label", line.label));
+    row.append(el("span", "answers-modal-value", line.value));
+    list.append(row);
+  });
+  $("#answersModalOverlay").hidden = false;
+}
+function closeAnswersModal() { $("#answersModalOverlay").hidden = true; }
+$("#docsModalAnswersBtn").addEventListener("click", openAnswersModal);
+$("#answersModalClose").addEventListener("click", closeAnswersModal);
+$("#answersModalOverlay").addEventListener("click", (e) => { if (e.target.id === "answersModalOverlay") closeAnswersModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#answersModalOverlay").hidden) closeAnswersModal(); });
+
+// Monta os dois links usados nos QR Codes: um para reabrir o site já com o código do
+// questionário preenchido (acesso rápido pelo celular), outro para falar com o técnico
+// pelo WhatsApp com o código já embutido na mensagem.
+function buildQuickAccessLink(answers) {
+  const code = encodeAnswerCode(answers);
+  const url = new URL(window.location.href);
+  url.hash = "";
+  url.searchParams.set("codigo", code);
+  return url.toString();
+}
+function buildWhatsAppLink(answers, name) {
+  const code = encodeAnswerCode(answers);
+  const msg = "Olá, me chamo " + (name || state.userName || "Visitante") + ".\nFiz a pré-análise do AVCB no site AVCB Pernambuco.\nGostaria de mais informações a respeito.\nO código gerado foi: " + code + ".";
+  return "https://wa.me/5581997460029?text=" + encodeURIComponent(msg);
+}
+function renderQrInto(containerId, text) {
+  const holder = $(containerId);
+  if (!holder) return;
+  holder.replaceChildren();
+  try {
+    const qr = qrcode(0, "L");
+    qr.addData(text);
+    qr.make();
+    holder.insertAdjacentHTML("beforeend", qr.createSvgTag({ cellSize: 4, margin: 8, scalable: true }));
+  } catch (e) {
+    holder.textContent = "Não foi possível gerar o QR Code.";
+  }
+}
+function openQrModal() {
+  if (!docsModalAnswers) return;
+  const pdfLink = buildQuickAccessLink(docsModalAnswers);
+  const wppLink = buildWhatsAppLink(docsModalAnswers);
+  renderQrInto("#qrModalPdf", pdfLink);
+  renderQrInto("#qrModalWpp", wppLink);
+  $("#qrModalOverlay").hidden = false;
+}
+function closeQrModal() { $("#qrModalOverlay").hidden = true; }
+$("#docsModalQrBtn").addEventListener("click", openQrModal);
+$("#qrModalClose").addEventListener("click", closeQrModal);
+$("#qrModalOverlay").addEventListener("click", (e) => { if (e.target.id === "qrModalOverlay") closeQrModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#qrModalOverlay").hidden) closeQrModal(); });
 
 async function copyTextToClipboard(text) {
   try {
@@ -1675,17 +4457,17 @@ async function copyTextToClipboard(text) {
 }
 
 $("#docsModalCopyBtn").addEventListener("click", async () => {
-  if (!docsModalRec) return;
-  const code = encodeDocCode([...docsModalRec.keys()]);
+  if (!docsModalAnswers) return;
+  const code = encodeAnswerCode(docsModalAnswers);
   const ok = await copyTextToClipboard(code);
   showToast(ok ? "Código copiado para a área de transferência." : "Não foi possível copiar automaticamente. Código: " + code);
 });
 
 $("#docCodeBtn").addEventListener("click", () => {
-  const ids = decodeDocCode($("#docCodeInput").value);
-  if (!ids.length) { showToast("Código inválido ou vazio."); return; }
-  const entries = ids.map(id => [id, { reasons: ["Documento indicado pelo código informado"], kinds: docById[id]?.basic ? ["basic"] : [] }]);
-  openDocsModal(entries);
+  const answers = decodeAnswerCode($("#docCodeInput").value);
+  if (!answers) { showToast("Código inválido ou vazio."); return; }
+  const rec = computeRecommendedForAnswers(answers);
+  openDocsModal([...rec.entries()], { printRec: rec, answers });
 });
 $("#docCodeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("#docCodeBtn").click(); } });
 
@@ -1769,7 +4551,8 @@ async function askToContact(subject, docList = false) {
 
 const S2_ICON_DATA_URI = "data:image/png;base64,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";
         const LOGO_SME_DATA_URI = "data:image/png;base64,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";
-function printChecklist(rec) {
+function printChecklist(rec, answers) {
+  const printAnswers = answers || answersFromLiveState();
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
@@ -1788,6 +4571,13 @@ function printChecklist(rec) {
     .tecnico { border-left: 5px solid #3b82f6; background: #eff6ff; }
     .tecnico-pci { border-left: 5px solid #3b82f6; border: 2px solid #eab308; background: #eff6ff; }
     .s2-icon-print { display:inline-block; width:26px; height:14px; margin-right:6px; vertical-align:middle; background: url('${S2_ICON_DATA_URI}') center/contain no-repeat; }
+    .print-footer { margin-top: 28px; padding-top: 16px; border-top: 2px solid #236a50; page-break-inside: avoid; }
+    .print-footer-code { font-size: 1.05em; font-weight: bold; }
+    .print-footer-note { font-size: 0.8em; color: #666; margin-top: 2px; }
+    .print-qr-row { display: flex; gap: 28px; margin-top: 14px; flex-wrap: wrap; }
+    .print-qr-item { text-align: center; }
+    .print-qr-item svg { width: 120px; height: 120px; }
+    .print-qr-caption { font-size: 0.78em; margin-top: 4px; color: #333; }
   `);
   doc.write('</style></head><body>');
 
@@ -1814,7 +4604,26 @@ function printChecklist(rec) {
       doc.write('<div class="doc-reasons">Motivo: ' + meta.reasons.join(" &bull; ") + '</div>');
       doc.write('</div>');
   }
-  
+
+  // Rodapé do relatório: código do questionário (para sempre reconsultar essa mesma
+  // lista) e os dois QR Codes — acesso rápido pelo celular e falar com o técnico.
+  const answerCode = encodeAnswerCode(printAnswers);
+  const buildQrSvg = (text) => {
+    try {
+      const q = qrcode(0, "L");
+      q.addData(text);
+      q.make();
+      return q.createSvgTag({ cellSize: 3, margin: 4 });
+    } catch (e) { return ""; }
+  };
+  doc.write('<div class="print-footer">');
+  doc.write('<div class="print-footer-code">Código do questionário: ' + answerCode + '</div>');
+  doc.write('<div class="print-footer-note">Guarde este código para reabrir esta lista de documentos ou gerar o PDF novamente a qualquer momento.</div>');
+  doc.write('<div class="print-qr-row">');
+  doc.write('<div class="print-qr-item">' + buildQrSvg(buildQuickAccessLink(printAnswers)) + '<div class="print-qr-caption">Acessar pelo celular</div></div>');
+  doc.write('<div class="print-qr-item">' + buildQrSvg(buildWhatsAppLink(printAnswers)) + '<div class="print-qr-caption">Falar com um técnico</div></div>');
+  doc.write('</div></div>');
+
   doc.write('</body></html>');
   doc.close();
 
@@ -1836,36 +4645,50 @@ function printChecklist(rec) {
 }
 
 async function finishChat() {
+  const _epoch = chatEpoch;
   chatState = "DONE";
   chatBackBtn.hidden = true;
+  if (typeof hideRestartBtn === "function") hideRestartBtn();
   setChatPhase("");
   clearChatOptions();
   chatInputArea.style.display = "none";
+  if (typeof hideProgressRuler === "function") hideProgressRuler();
   // Marca as etapas "Nenhum" quando o fluxo do chat percorreu todas as perguntas
   // aplicáveis e nenhuma condição foi marcada, para manter o formulário admin coerente.
   if(!establishmentConditionDefs.some(c=>!c.none && conditionVisible(c) && state.conditions[c.id])) state.conditions.noneEstablishment = true;
   if(!processConditionDefs.some(c=>!c.none && conditionVisible(c) && state.conditions[c.id])) state.conditions.noneProcess = true;
   persist();
   const rec = computeRecommended();
-  const docCode = encodeDocCode([...rec.keys()]);
+  const finishAnswers = answersFromLiveState();
+  const docCode = encodeAnswerCode(finishAnswers);
+  chatFinishRec = rec;
+  chatFinishAnswers = finishAnswers;
 
-  await addChatBubble("Parabéns, seu questionário foi concluído com sucesso.");
+  const firstName = (state.userName || "").trim().split(/\s+/)[0] || "";
+  await addChatBubble(firstName ? ("Parabéns, " + firstName + "! Seu questionário foi concluído com sucesso.") : "Parabéns, seu questionário foi concluído com sucesso.");
+  if (_epoch !== chatEpoch) return;
 
   if (rec.size === 0) {
     await addChatBubble("Nenhum documento foi associado às escolhas atuais.");
   } else {
     await addChatBubble("Os documentos necessários para fazer sua AVCB estão disponíveis. Basta clicar no botão abaixo.");
+    if (_epoch !== chatEpoch) return;
     const docsCta = el("div", "chat-cta-container");
     const docsBtn = el("button", "btn btn-primary", "Documentos AVCB");
     docsBtn.type = "button";
-    docsBtn.onclick = () => openDocsModal([...rec.entries()], { printRec: rec });
+    docsBtn.onclick = () => openDocsModal([...rec.entries()], { printRec: rec, answers: finishAnswers });
     docsCta.append(docsBtn);
     chatMessages.append(docsCta);
     scrollToBottom();
+
+    await addChatBubble("Envie o PDF gerado em <button type='button' class='chat-inline-link-btn chat-inline-docs-open'>Documentos AVCB</button> para acelerar seu processo.");
+    if (_epoch !== chatEpoch) return;
+    await addChatBubble("Salve o Código do Questionário disponível em <button type='button' class='chat-inline-link-btn chat-inline-docs-open'>Documentos AVCB</button> para sempre gerar o PDF dos Documentos AVCB.");
+    if (_epoch !== chatEpoch) return;
   }
 
   await addChatBubble("Clique no botão abaixo para entrar em contato com um técnico da Sá Moraes Engenharia e dar continuidade à validação do seu AVCB.");
-  await addChatBubble("Envie o PDF gerado em anexo para acelerar seu processo.");
+  if (_epoch !== chatEpoch) return;
   const talkCta = el("div", "chat-cta-container");
   const talkBtn = el("button", "btn", "Falar com técnico");
   talkBtn.type = "button";
@@ -1890,7 +4713,7 @@ async function finishChat() {
     countdownBubble.innerHTML = 'Você será redirecionado para o <a href="' + wppLink + '" target="_blank" rel="noopener">WhatsApp</a> em <span id="wpp-countdown2">' + count + '</span> segundos...';
     scrollToBottom();
 
-    await addChatBubble("Caso a página não abra após 5 segundos, clique no hiperlink WhatsApp para ser direcionado para o técnico.");
+    await addChatBubble("Caso a página não abra após 5 segundos, clique no hiperlink <a href='" + wppLink + "' target='_blank' rel='noopener'>WhatsApp</a> para ser direcionado para o técnico.");
 
     await new Promise(resolve => {
       const interval = setInterval(() => {
@@ -1941,6 +4764,8 @@ async function showFullEstablishmentDropdown() {
     chatInput.value = "";
     await addChatBubble(est.label, false);
     state.establishment = est.id;
+    chatHistory.push({ phase: "estab", msgCountBefore: chatEstabStepMsgCount });
+    updateBackButton();
     syncConditionalState(); persist(); renderAll();
     askRisk();
   });
@@ -1965,6 +4790,8 @@ chatInput?.addEventListener("input", (e) => {
         clearChatOptions();
         await addChatBubble(est.label, false);
         state.establishment = est.id;
+        chatHistory.push({ phase: "estab", msgCountBefore: chatEstabStepMsgCount });
+        updateBackButton();
         syncConditionalState();
         persist(); renderAll();
         askRisk();
@@ -2000,7 +4827,18 @@ chatInput?.addEventListener("input", (e) => {
   populateEstablishments();
   syncConditionalState();
   renderAll();
-  
+
+  // Acesso rápido via QR Code: ?codigo=XXXX na URL abre direto o modal de documentos
+  // com as respostas decodificadas, sem alterar o estado do formulário/chatbot em uso.
+  const urlCode = new URLSearchParams(window.location.search).get("codigo");
+  if (urlCode) {
+    const answers = decodeAnswerCode(urlCode);
+    if (answers) {
+      const rec = computeRecommendedForAnswers(answers);
+      openDocsModal([...rec.entries()], { printRec: rec, answers });
+    }
+  }
+
   if(!isAdmin) {
     if(!state.userName) {
       chatState = "NAME";
@@ -2012,6 +4850,9 @@ chatInput?.addEventListener("input", (e) => {
       chatInput.focus();
     } else if(!state.establishment) {
       chatState = "ESTAB";
+      chatHistory.push({ phase: "name", msgCountBefore: 0 });
+      chatEstabStepMsgCount = chatMsgCount();
+      updateBackButton();
       await addChatBubble(`Olá ${state.userName}. Vou lhe fazer algumas perguntas para descobrirmos quais documentos você precisa para fazer o seu AVCB.`);
       await addChatBubble("Para começar, <strong>qual é o tipo de estabelecimento ou ocupação?</strong> (Ex: padaria, escola, loja...)");
       chatInput.disabled = false;
