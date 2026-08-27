@@ -90,6 +90,8 @@
     .chat-inline-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
     .chat-inline-btn { text-align: left; padding: 8px 12px; border: 1px solid #cfe0d6; border-radius: 10px; background: #fff; color: var(--ink); font-size: .82rem; line-height: 1.3; cursor: pointer; transition: .15s; }
     .chat-inline-btn:disabled { cursor: default; opacity: .6; }
+    .chat-dropdown-select { width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid #cfe0d6; border-radius: 10px; background: #fff; color: var(--ink); font-size: .82rem; outline: none; }
+    .chat-dropdown-select:disabled { opacity: .6; }
     .chat-inline-btn:hover { background: #f4f9f6; }
     .chat-inline-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
     .chat-inline-btn.chat-inline-none { font-weight: 700; border-style: dashed; }
@@ -100,6 +102,17 @@
     .doc-result-card.tecnico-pci { background: #eff6ff; border: 2px solid #eab308; box-shadow: inset 3px 0 0 #3b82f6; }
     .doc-result-card .doc-title { font-weight: 600; color: var(--ink); font-size: 0.85rem; }
     .doc-result-card .doc-detail { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .chat-cta-container { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; align-items: flex-start; }
+
+    .docs-modal-overlay { position: fixed; inset: 0; background: rgba(20,26,22,.55); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 200; }
+    .docs-modal-overlay[hidden] { display: none; }
+    .docs-modal { position: relative; background: #fff; border-radius: 18px; max-width: 560px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .docs-modal h3 { margin: 0 0 12px; font: 500 1.15rem/1.2 Georgia, serif; color: var(--ink); padding-right: 24px; }
+    .docs-modal-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+    .docs-modal-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f4f5f1; color: var(--muted); font-size: 1.1rem; cursor: pointer; line-height: 1; }
+    .docs-modal-close:hover { background: #ecebe4; color: var(--ink); }
+    .docs-modal-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .docs-modal-disclaimer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; line-height: 1.45; }
     .chat-done-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .restart-btn { margin-top: 16px; align-self: center; }
     @media(max-width:900px){header{flex-direction:column;align-items:stretch}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
@@ -117,6 +130,13 @@
         <p class="subtitle">Lista consolidada de documentos e assistente de enquadramento por ocupação. O tipo A–Q identifica a ocupação; o nível de risco permanece informado manualmente e o pacote documental é montado pelas regras de risco, ocupação, características do estabelecimento e configurações do processo.</p>
       </div>
       <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-end;">
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+          <label for="docCodeInput" style="font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);">Código de documentos</label>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="docCodeInput" placeholder="Cole o código aqui" autocomplete="off" style="min-height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; font-size:.78rem; width:170px; outline:none;">
+            <button class="btn" id="docCodeBtn" type="button" style="min-height:36px; padding:0 12px; font-size:.78rem;">Consultar</button>
+          </div>
+        </div>
         <div class="progress-card admin-only" aria-live="polite" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
           <button class="btn" id="clearFormButton" type="button" style="margin-bottom: 12px; font-size: 0.75rem; background: #fdfdfc; color: #7a7f78; border-color: #e3e4df; width: 100%;">Limpar formulário</button>
           <span class="progress-number" id="progressNumber">0 / 0</span>
@@ -132,13 +152,26 @@
       </div>
     </header>
 
+    <div id="docsModalOverlay" class="docs-modal-overlay" hidden>
+      <div class="docs-modal" role="dialog" aria-modal="true" aria-labelledby="docsModalTitle">
+        <button class="docs-modal-close" id="docsModalClose" type="button" aria-label="Fechar">×</button>
+        <h3 id="docsModalTitle">Documentos necessários</h3>
+        <div id="docsModalList" class="docs-modal-list"></div>
+        <div class="docs-modal-actions">
+          <button class="btn btn-primary" id="docsModalPrintBtn" type="button">Gerar PDF</button>
+          <button class="btn" id="docsModalCopyBtn" type="button">Copiar código do questionário</button>
+        </div>
+        <div class="docs-modal-disclaimer">Os documentos listados são uma sugestão baseada nas respostas feitas no questionário e podem haver diferenças com os documentos necessários de fato devido a atualizações dos requisitos dos Bombeiros.</div>
+      </div>
+    </div>
+
     <div id="chatbotPanel">
       <div class="chat-container">
         <div class="chat-progress" id="chatProgress"></div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-options" id="chatOptions">
-          <div class="chat-options-scroll" id="chatOptionsScroll"></div>
           <button class="chat-back-btn-fixed" id="chatBackBtn" type="button" title="Voltar para a pergunta anterior" hidden>◀</button>
+          <div class="chat-options-scroll" id="chatOptionsScroll"></div>
         </div>
         <div class="chat-input-area" id="chatInputArea">
            <input type="text" id="chatInput" placeholder="Digite o tipo de estabelecimento para buscar..." autocomplete="off">
@@ -392,6 +425,48 @@
 
     const docById = Object.fromEntries(documents.map(d => [d.id, d]));
     const basicDocIds = new Set(documents.filter(d => d.basic).map(d => d.id));
+
+    // Ajusta a capitalização do nome digitado no chatbot: primeira letra de cada
+    // nome/sobrenome maiúscula, o restante minúsculo — preposições comuns (de, da, do,
+    // das, dos, e) ficam em minúsculo quando não são a primeira palavra.
+    const NAME_LOWERCASE_WORDS = new Set(["de", "da", "do", "das", "dos", "e"]);
+    function formatPersonName(raw) {
+      return (raw || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .split(" ")
+        .map((word, i) => {
+          const lower = word.toLocaleLowerCase("pt-BR");
+          if (i > 0 && NAME_LOWERCASE_WORDS.has(lower)) return lower;
+          return lower
+            .split("-")
+            .map(part => part ? part.charAt(0).toLocaleUpperCase("pt-BR") + part.slice(1) : part)
+            .join("-");
+        })
+        .join(" ");
+    }
+
+    // Código hexadecimal por documento — cada documento recebe um código de 3 dígitos
+    // hexadecimais (posição dele na lista `documents`, suficiente para até 4096 documentos).
+    // A concatenação dos códigos de todos os documentos recomendados forma o "código do
+    // questionário", que pode ser colado depois para reconstituir a mesma lista.
+    const DOC_HEX_LEN = 3;
+    function docHexCode(id) {
+      const idx = documents.findIndex(d => d.id === id);
+      return idx < 0 ? null : idx.toString(16).toUpperCase().padStart(DOC_HEX_LEN, "0");
+    }
+    function encodeDocCode(ids) {
+      return ids.map(docHexCode).filter(Boolean).join("");
+    }
+    function decodeDocCode(code) {
+      const clean = (code || "").trim().toUpperCase().replace(/[^0-9A-F]/g, "");
+      const ids = [];
+      for (let i = 0; i + DOC_HEX_LEN <= clean.length; i += DOC_HEX_LEN) {
+        const idx = parseInt(clean.slice(i, i + DOC_HEX_LEN), 16);
+        if (!isNaN(idx) && documents[idx]) ids.push(documents[idx].id);
+      }
+      return ids;
+    }
 
     const occupationTypes = {
       A:{name:"Residencial Privativa Unifamiliar", note:"Casas destinadas à residência de uma só família. Agrupamentos/vilas têm regra específica e apresentação de projeto arquitetônico."},
@@ -1071,6 +1146,22 @@
       }
     });
 
+    // Confirmação por Enter independente de foco: depois de clicar nas opções (com o
+    // mouse ou toque), o foco não fica mais no campo de texto — sem isso, apertar Enter
+    // não fazia nada a menos que o usuário clicasse antes no campo. Este listener cobre
+    // qualquer lugar da página (exceto campos de texto, que já têm seu próprio handler).
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== 'Enter') return;
+      if (typeof chatMultiSelectConfirm !== "function") return;
+      const active = document.activeElement;
+      const isTextField = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+      if (isTextField && active !== chatInput) return; // não interfere em outros campos (ex.: código de documentos)
+      if (active === chatInput) return; // o handler do chatInput abaixo já cuida deste caso
+      if (active && active.tagName === 'BUTTON') return; // botão focado já responde ao Enter nativamente (seleciona a opção)
+      chatMultiSelectConfirm();
+      e.preventDefault();
+    });
+
     chatInput?.addEventListener("keydown", (e) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         const firstOption = Array.from(chatOptions.querySelectorAll('.chat-option-btn')).find(b => b.style.display !== 'none');
@@ -1084,7 +1175,7 @@
           return;
         }
         if (chatState === "NAME") {
-           const name = chatInput.value.trim();
+           const name = formatPersonName(chatInput.value.trim());
            if(name.length > 0) {
               state.userName = name;
               persist();
@@ -1281,7 +1372,6 @@
       markStepStart();
       await addChatBubble(RISK_QUESTION_TEXT[id]);
       const savedIndex = chatRiskIndex;
-      const label = riskConditionDefs.find(c => c.id === id)?.label || "";
       addChatOption("Sim", async () => {
         clearChatOptions();
         await addChatBubble("Sim", false);
@@ -1289,7 +1379,6 @@
         syncConditionalState();
         pushChatHistory({ phase: "risk", index: savedIndex, id, prevVal: false });
         persist(); renderAll();
-        await addChatBubble("Isso já classifica o estabelecimento como <strong>Risco III (alto)</strong>, pois atende a este critério:" + label);
         startCondPhase();
       });
       addChatOption("Não", async () => {
@@ -1316,7 +1405,7 @@
     // GNV e "posto de abastecimento de GNV" eram duas perguntas sequenciais e redundantes
     // (a segunda só fazia sentido depois de "sim" na primeira). Agora é uma única pergunta
     // de múltipla escolha que já define as duas condições de uma vez.
-    const INSTALL_BATCH_IDS = ["camaraFria", "glp", "gn", "elevador", "gerador", "spda"];
+    const INSTALL_BATCH_IDS = ["camaraFria", "elevador", "gerador", "spda", "glp", "gn"];
     const CHAT_STRUCTURAL_IDS = ["pessoaFisica", "mei", "publico", "publicoLocado", "condominio", "condominioPci", "procuracao", "historico"];
     const CHAT_INSTALL_IDS = ["__INSTALACOES__", "__GNV__", "casaNoturna", "palco", "trio"];
 
@@ -1512,6 +1601,90 @@
       addChatOption("É posto de abastecimento de GNV", () => choose("É posto de abastecimento de GNV", true, true));
     }
 
+// Modal "Documentos AVCB" — usado tanto ao final do questionário quanto ao consultar um
+// código hexadecimal colado no topo do site (funciona igual no chatbot e no formulário admin).
+function groupDocEntries(entries) {
+  const tec = entries.filter(([id]) => docById[id]?.tecnico);
+  const basic = entries.filter(([id, v]) => !docById[id]?.tecnico && (v.kinds?.includes("basic") || docById[id]?.basic));
+  const other = entries.filter(([id, v]) => !docById[id]?.tecnico && !(v.kinds?.includes("basic") || docById[id]?.basic));
+  return [...tec, ...basic, ...other];
+}
+
+function renderDocsModalList(entries) {
+  const list = $("#docsModalList");
+  list.replaceChildren();
+  if (!entries.length) { list.append(el("div", "recommendation-empty", "Nenhum documento foi associado a este código/resposta.")); return; }
+  groupDocEntries(entries).forEach(([id, meta]) => {
+    const d = docById[id];
+    if (!d) return;
+    let cls = "doc-result-card";
+    if (d.tecnico) cls += d.id === "pci_aprovado" ? " tecnico-pci" : " tecnico";
+    else if (meta.kinds?.includes("basic") || d.basic) cls += " basic";
+    const card = el("div", cls);
+    const cTitle = el("div", "doc-title");
+    if (d.tecnico) cTitle.append(el("span", "s2-icon"));
+    cTitle.insertAdjacentHTML("beforeend", d.title);
+    card.append(cTitle);
+    if (d.detail) { const cDet = el("div", "doc-detail"); cDet.innerHTML = d.detail; card.append(cDet); }
+    if (meta.reasons?.length) card.append(el("div", "doc-detail", "Motivo: " + meta.reasons.join(" • ")));
+    list.append(card);
+  });
+}
+
+let docsModalRec = null; // Map usada pelo botão "Gerar PDF" do modal
+function openDocsModal(entries, opts = {}) {
+  docsModalRec = opts.printRec || new Map(entries);
+  renderDocsModalList(entries);
+  $("#docsModalOverlay").hidden = false;
+}
+function closeDocsModal() {
+  $("#docsModalOverlay").hidden = true;
+  docsModalRec = null;
+}
+$("#docsModalClose").addEventListener("click", closeDocsModal);
+$("#docsModalOverlay").addEventListener("click", (e) => { if (e.target.id === "docsModalOverlay") closeDocsModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#docsModalOverlay").hidden) closeDocsModal(); });
+$("#docsModalPrintBtn").addEventListener("click", () => { if (docsModalRec) printChecklist(docsModalRec); });
+
+async function copyTextToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* cai para o fallback abaixo */ }
+  // Fallback para quando a Clipboard API não está disponível (ex.: arquivo aberto
+  // localmente via file://, sem contexto seguro).
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+$("#docsModalCopyBtn").addEventListener("click", async () => {
+  if (!docsModalRec) return;
+  const code = encodeDocCode([...docsModalRec.keys()]);
+  const ok = await copyTextToClipboard(code);
+  showToast(ok ? "Código copiado para a área de transferência." : "Não foi possível copiar automaticamente. Código: " + code);
+});
+
+$("#docCodeBtn").addEventListener("click", () => {
+  const ids = decodeDocCode($("#docCodeInput").value);
+  if (!ids.length) { showToast("Código inválido ou vazio."); return; }
+  const entries = ids.map(id => [id, { reasons: ["Documento indicado pelo código informado"], kinds: docById[id]?.basic ? ["basic"] : [] }]);
+  openDocsModal(entries);
+});
+$("#docCodeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("#docCodeBtn").click(); } });
+
 async function askToContact(subject, docList = false) {
    chatState = "CONTACT";
    chatInputArea.style.display = "flex";
@@ -1670,62 +1843,94 @@ async function finishChat() {
   if(!processConditionDefs.some(c=>!c.none && conditionVisible(c) && state.conditions[c.id])) state.conditions.noneProcess = true;
   persist();
   const rec = computeRecommended();
-  if(rec.size === 0) {
+  const docCode = encodeDocCode([...rec.keys()]);
+
+  await addChatBubble("Parabéns, seu questionário foi concluído com sucesso.");
+
+  if (rec.size === 0) {
     await addChatBubble("Nenhum documento foi associado às escolhas atuais.");
-    askToContact(null, true);
-    return;
+  } else {
+    await addChatBubble("Os documentos necessários para fazer sua AVCB estão disponíveis. Basta clicar no botão abaixo.");
+    const docsCta = el("div", "chat-cta-container");
+    const docsBtn = el("button", "btn btn-primary", "Documentos AVCB");
+    docsBtn.type = "button";
+    docsBtn.onclick = () => openDocsModal([...rec.entries()], { printRec: rec });
+    docsCta.append(docsBtn);
+    chatMessages.append(docsCta);
+    scrollToBottom();
   }
-  await addChatBubble("Certo! Com base nas suas respostas, aqui estão os <strong>" + rec.size + " documentos necessários</strong>:");
-  
-  const doneContainer = el("div", "chat-done-container");
-  // Agrupa como no formulário admin: técnicos juntos primeiro, depois básicos juntos,
-  // depois os demais (próprios do risco, do estabelecimento e do processo).
-  const recEntries = [...rec.entries()];
-  const tecEntries = recEntries.filter(([id]) => docById[id].tecnico);
-  const basicEntries = recEntries.filter(([id, v]) => !docById[id].tecnico && v.kinds.includes("basic"));
-  const otherEntries = recEntries.filter(([id, v]) => !docById[id].tecnico && !v.kinds.includes("basic"));
-  [...tecEntries, ...basicEntries, ...otherEntries].forEach(([id, meta]) => {
-    const d = docById[id];
-    let cls = "doc-result-card";
-    if(d.tecnico) cls += d.id === "pci_aprovado" ? " tecnico-pci" : " tecnico";
-    else if(meta.kinds.includes("basic")) cls += " basic";
-    const card = el("div", cls);
-      const cTitle = el("div", "doc-title");
-      if(d.tecnico) cTitle.append(el("span", "s2-icon"));
-      cTitle.insertAdjacentHTML("beforeend", d.title);
-      card.append(cTitle);
-      if(d.detail) { const cDet = el("div", "doc-detail"); cDet.innerHTML = d.detail; card.append(cDet); }
-    card.append(el("div", "doc-detail", "Motivo: " + meta.reasons.join(" • ")));
-    doneContainer.append(card);
-  });
-  
-  const btnsDiv = el("div");
-  btnsDiv.style.marginTop = "15px";
-  btnsDiv.style.display = "flex";
-  btnsDiv.style.gap = "10px";
-  btnsDiv.style.flexWrap = "wrap";
-  
-  const restartBtn = el("button", "btn btn-primary restart-btn", "Fazer nova consulta");
-  restartBtn.onclick = () => {
-      state.establishment = "";
-      state.risk = "";
-      state.conditions = {...defaultConditions};
-      persist();
-      location.reload();
+
+  await addChatBubble("Clique no botão abaixo para entrar em contato com um técnico da Sá Moraes Engenharia e dar continuidade à validação do seu AVCB. Envie o PDF gerado em anexo para acelerar seu processo.");
+  const talkCta = el("div", "chat-cta-container");
+  const talkBtn = el("button", "btn", "Falar com técnico");
+  talkBtn.type = "button";
+  talkBtn.style.border = "1px solid var(--green)";
+  talkBtn.style.background = "#fff";
+  talkBtn.style.color = "var(--green)";
+  talkBtn.onclick = async () => {
+    if (talkBtn.disabled) return;
+    talkBtn.disabled = true;
+    const msg = "Olá, me chamo " + (state.userName || "Visitante") + ".\nFiz a pré-análise do AVCB no site AVCB Pernambuco.\nGostaria de mais informações a respeito.\nO código gerado foi: " + docCode + ".";
+    const wppLink = "https://wa.me/5581997460029?text=" + encodeURIComponent(msg);
+    const countdownBubble = el("div", "chat-bubble bot");
+    chatMessages.append(countdownBubble);
+    scrollToBottom();
+    let count = 5;
+    countdownBubble.innerHTML = "Você será redirecionado para o WhatsApp em <span id=\"wpp-countdown2\">" + count + "</span> segundos...";
+    await new Promise(resolve => {
+      const interval = setInterval(() => {
+        count--;
+        const span = document.getElementById("wpp-countdown2");
+        if (span) span.textContent = count;
+        if (count <= 0) {
+          clearInterval(interval);
+          window.open(wppLink, "_blank");
+          resolve();
+        }
+      }, 1000);
+    });
   };
-  
-  const printBtn = el("button", "btn", "Imprimir em PDF");
-  printBtn.style.border = "1px solid var(--green)";
-  printBtn.style.background = "#fff";
-  printBtn.style.color = "var(--green)";
-  printBtn.onclick = () => printChecklist(rec);
-  
-  btnsDiv.append(restartBtn, printBtn);
-  doneContainer.append(btnsDiv);
-  chatMessages.append(doneContainer);
+  talkCta.append(talkBtn);
+  chatMessages.append(talkCta);
   scrollToBottom();
-  
-  askToContact(null, true);
+}
+
+// Quando a busca por texto não encontra nada, oferece a lista completa de
+// estabelecimentos em um dropdown (em vez de um filtro de "opções genéricas" limitado).
+async function showFullEstablishmentDropdown() {
+  await addChatBubble("Sem problemas — selecione o estabelecimento na lista completa abaixo:");
+  const bubble = el("div", "chat-bubble bot");
+  chatMessages.append(bubble);
+  const wrap = el("div", "chat-inline-options");
+  const select = document.createElement("select");
+  select.className = "chat-dropdown-select";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "— Selecione um estabelecimento —";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  select.append(placeholder);
+  [...establishments]
+    .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"))
+    .forEach(est => {
+      const opt = document.createElement("option");
+      opt.value = est.id;
+      opt.textContent = est.label;
+      select.append(opt);
+    });
+  select.addEventListener("change", async () => {
+    const est = establishments.find(e => e.id === select.value);
+    if (!est) return;
+    select.disabled = true;
+    chatInput.value = "";
+    await addChatBubble(est.label, false);
+    state.establishment = est.id;
+    syncConditionalState(); persist(); renderAll();
+    askRisk();
+  });
+  wrap.append(select);
+  bubble.append(wrap);
+  scrollToBottom();
 }
 
 chatInput?.addEventListener("input", (e) => {
@@ -1750,18 +1955,9 @@ chatInput?.addEventListener("input", (e) => {
       });
     });
     if(matches.length === 0) {
-      addChatOption("Não encontrei — ver opções genéricas", () => {
+      addChatOption("Não encontrei — ver lista completa", () => {
         clearChatOptions();
-        const generic = establishments.filter(e => /^Outr[ao] ?\/? ?(congênere|atividade|galpão|instalação|edificação)/i.test(e.label));
-        generic.forEach(est => addChatOption(est.label, async () => {
-          chatInput.value = "";
-          clearChatOptions();
-          await addChatBubble(est.label, false);
-          state.establishment = est.id;
-          syncConditionalState(); persist(); renderAll();
-          askRisk();
-        }));
-        addChatOption("◀ Voltar à busca", () => { clearChatOptions(); chatInput.focus(); });
+        showFullEstablishmentDropdown();
       });
     }
   } else {
