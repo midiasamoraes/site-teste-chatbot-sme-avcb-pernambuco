@@ -59,12 +59,32 @@
   th { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
   tr:last-child td { border-bottom: none; }
 
-  .download-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(23,33,27,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .modal-box { position: relative; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 28px; width: min(360px, 100%); }
+  .modal-box h3 { margin: 0 0 18px; font-size: 1.05rem; }
+  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.3rem; line-height: 1; color: var(--muted); }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+  .modal-actions .btn { justify-content: center; }
   #loadingNote { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
   #errorNote { color: var(--danger); font-size: .9rem; margin-bottom: 16px; display: none; background: #fbeceb; border: 1px solid #e6c3bf; border-radius: 10px; padding: 12px 14px; }
   .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
   .badge-green { background: var(--green-soft); color: var(--green); }
   .badge-gold { background: var(--gold-soft); color: var(--warning); }
+
+  .btn-invert { background: #fff; color: var(--green); border-color: var(--green); }
+  .btn-invert:hover { background: var(--green-soft); border-color: var(--green); }
+
+  .info-toggle { margin-top: 10px; }
+  .info-toggle summary { cursor: pointer; font-size: .78rem; font-weight: 700; color: var(--green2); list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+  .info-toggle summary::-webkit-details-marker { display: none; }
+  .info-toggle summary::before { content: "▸"; font-size: .7rem; transition: transform .15s ease; }
+  .info-toggle[open] summary::before { transform: rotate(90deg); }
+  .info-toggle-body { margin-top: 8px; font-size: .8rem; color: var(--muted); line-height: 1.5; background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+  .info-toggle-body strong { color: var(--ink); }
+
+  .page-nav { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 30px; }
+  .page-nav a.btn { min-width: 42px; justify-content: center; }
+  .page-nav .page-nav-label { font-size: .8rem; color: var(--muted); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -77,7 +97,10 @@
       </div>
       <div class="header-actions">
         <a href="index.html" class="btn">← Voltar ao site</a>
-        <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar dados</button>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar dados</button>
+          <button class="btn btn-invert" id="downloadBtn" type="button">Download</button>
+        </div>
       </div>
     </header>
 
@@ -139,15 +162,18 @@
           <div class="kpi-sub">nas conversas completadas</div>
         </div>
       </div>
+      <details class="info-toggle" style="margin-bottom:22px;"><summary>O que são esses números?</summary><div class="info-toggle-body">Visão geral de todas as conversas no período filtrado. <strong>Tempo médio</strong> usa, sempre que possível, o horário registrado pelo próprio Supabase (servidor) para início e fim — mais confiável que o relógio do aparelho do usuário; se algum dado do servidor faltar para uma sessão, o painel cai para o horário do usuário só naquele caso e avisa isso logo abaixo do número.</div></details>
 
       <div class="grid-2">
         <div class="card">
           <h3>Interações por dia (completadas x não completadas)</h3>
           <canvas id="chartTimeline"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Cada barra é um dia; a parte <strong>verde</strong> é quanta gente concluiu o questionário naquele dia, a parte <strong>dourada</strong> é quanta gente começou e não terminou. Observe se dias/semanas específicas têm picos (campanha, indicação, época de fiscalização) e se a taxa de abandono muda com o volume — um dia com muito volume e muito abandono pode indicar o site enfrentando lentidão ou sobrecarga.</div></details>
         </div>
         <div class="card">
           <h3>Onde as conversas não completadas param</h3>
           <canvas id="chartFunnel"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Mostra em qual etapa do questionário as pessoas desistem antes de terminar. Uma barra alta logo no início ("Não iniciou") indica gente que só digitou o nome e saiu — vale revisar a primeira pergunta. Se o maior abandono for numa etapa específica (ex.: Instalações), essa etapa pode estar longa, confusa ou repetitiva demais.</div></details>
         </div>
       </div>
 
@@ -155,14 +181,17 @@
         <div class="card">
           <h3>Nível de risco (completadas)</h3>
           <canvas id="chartRisk"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Distribuição do nível de risco (I, II ou III) entre quem terminou o questionário. Risco III normalmente significa obra maior e processo mais complexo — um aumento na fatia de Risco III pode sinalizar leads de ticket potencialmente mais alto chegando ao site.</div></details>
         </div>
         <div class="card">
           <h3>Tipo de estabelecimento — letra (completadas)</h3>
           <canvas id="chartEstabType"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Agrupa as conversas completas pela letra de ocupação (A a Q, conforme o COSCIP). Ajuda a enxergar quais tipos de estabelecimento mais procuram o site — se um tipo específico predominar, pode valer a pena criar conteúdo ou anúncios direcionados a esse público.</div></details>
         </div>
         <div class="card">
           <h3>Dispositivo</h3>
           <canvas id="chartDevice"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Mostra se as pessoas usam celular ou computador para conversar com o chatbot. Se a maioria for mobile, vale conferir com atenção a experiência do site nesse formato — botões pequenos ou textos cortados pesam mais nesse público.</div></details>
         </div>
       </div>
 
@@ -170,10 +199,12 @@
         <div class="card">
           <h3>Top 10 estabelecimentos específicos (completadas)</h3>
           <div id="topEstabTable"></div>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Os estabelecimentos exatos (não só a letra) mais escolhidos por quem concluiu o questionário. Útil para saber, na prática, quem é o cliente típico — por exemplo, se "padaria" ou "oficina mecânica" aparecem repetidamente, esses nichos podem merecer uma abordagem comercial ou material educativo específico.</div></details>
         </div>
         <div class="card">
           <h3>Engajamento pós-questionário</h3>
           <div id="engagementTable"></div>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">O que a pessoa faz depois de ver o resultado: se ela baixa os documentos, se clica para falar com um técnico no WhatsApp, quantas vezes voltou no meio da conversa, e se reiniciou tudo. Uma taxa baixa de clique no WhatsApp entre quem completou é o sinal mais direto de leads "mornos" — gente que recebeu a informação mas não avançou para o contato comercial.</div></details>
         </div>
       </div>
 
@@ -183,13 +214,25 @@
           <div><canvas id="chartBrowser"></canvas></div>
           <div id="languageTable"></div>
         </div>
+        <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Perfil técnico de quem acessa o site. Serve principalmente para priorizar testes e correções — se um navegador específico concentra muitos acessos, garantir que o site funcione bem nele é mais importante do que em navegadores raros.</div></details>
       </div>
 
-      <div class="download-row">
-        <button class="btn btn-primary" id="downloadRawBtn" type="button">⬇ Baixar banco de dados (bruto, CSV)</button>
-        <button class="btn btn-primary" id="downloadReportBtn" type="button">⬇ Baixar relatório processado (HTML)</button>
+      <div class="page-nav">
+        <span class="page-nav-label">Página 1 de 2</span>
+        <a href="analytics2.html" class="btn" title="Próxima página — Leads e tempo real">Próxima →</a>
       </div>
 
+    </div>
+  </div>
+
+  <div id="downloadModalOverlay" class="modal-overlay" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+      <button class="modal-close" id="downloadModalClose" type="button" aria-label="Fechar">×</button>
+      <h3 id="downloadModalTitle">Download</h3>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="downloadRawBtn" type="button">Banco de dados (CSV)</button>
+        <button class="btn btn-primary" id="downloadReportBtn" type="button">Relatório (HTML)</button>
+      </div>
     </div>
   </div>
 
@@ -295,13 +338,32 @@
     $("#kpiRate").textContent = total ? fmtPct(completed.length / total) : "0%";
     $("#kpiRateSub").textContent = "concluíram o questionário até o PDF";
 
-    // Tempo médio de conclusão
-    const durations = completed
-      .filter(s => s.started_at && s.completed_at)
-      .map(s => new Date(s.completed_at) - new Date(s.started_at))
-      .filter(d => d > 0 && d < 1000 * 60 * 60 * 2); // descarta outliers > 2h (aba deixada aberta)
+    // Tempo médio de conclusão — sempre usando os DOIS timestamps do mesmo lado (nunca
+    // início do servidor com fim do cliente, ou vice-versa). Prioriza o par do servidor
+    // (started_at/completed_at); só cai para o par do cliente quando falta algum dos dois
+    // do servidor para aquela sessão, e sinaliza isso ao usuário do painel.
+    let usedClientFallback = false;
+    const durations = [];
+    completed.forEach(s => {
+      let pair = null;
+      if (s.started_at && s.completed_at) {
+        pair = [s.started_at, s.completed_at];
+      } else if (s.client_started_at && s.client_completed_at) {
+        pair = [s.client_started_at, s.client_completed_at];
+        usedClientFallback = true;
+      }
+      if (!pair) return; // falta um timestamp do par — não mistura fontes, só ignora esta sessão no cálculo
+      const d = new Date(pair[1]) - new Date(pair[0]);
+      if (d > 0 && d < 1000 * 60 * 60 * 2) durations.push(d); // descarta outliers > 2h (aba deixada aberta)
+    });
     const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : NaN;
     $("#kpiAvgTime").textContent = fmtDuration(avgDuration);
+    const avgTimeSub = $("#kpiAvgTime").closest(".kpi-card")?.querySelector(".kpi-sub");
+    if (avgTimeSub) {
+      avgTimeSub.textContent = usedClientFallback
+        ? "do nome digitado ao PDF gerado — ⚠ parte usando horário do usuário (servidor indisponível para algumas sessões)"
+        : "do nome digitado ao PDF gerado (horário do servidor)";
+    }
 
     const docCounts = completed.filter(s => typeof s.doc_count === "number").map(s => s.doc_count);
     const avgDocs = docCounts.length ? (docCounts.reduce((a, b) => a + b, 0) / docCounts.length) : NaN;
@@ -518,11 +580,17 @@
     downloadFile("relatorio_analytics_" + new Date().toISOString().slice(0, 10) + ".html", html, "text/html;charset=utf-8");
   }
 
+  function openDownloadModal() { $("#downloadModalOverlay").hidden = false; }
+  function closeDownloadModal() { $("#downloadModalOverlay").hidden = true; }
+
   $("#refreshBtn").addEventListener("click", loadData);
   $("#applyFiltersBtn").addEventListener("click", applyFilters);
   $("#clearFiltersBtn").addEventListener("click", clearFilters);
-  $("#downloadRawBtn").addEventListener("click", downloadRaw);
-  $("#downloadReportBtn").addEventListener("click", downloadReport);
+  $("#downloadBtn").addEventListener("click", openDownloadModal);
+  $("#downloadModalClose").addEventListener("click", closeDownloadModal);
+  $("#downloadModalOverlay").addEventListener("click", (e) => { if (e.target.id === "downloadModalOverlay") closeDownloadModal(); });
+  $("#downloadRawBtn").addEventListener("click", () => { downloadRaw(); closeDownloadModal(); });
+  $("#downloadReportBtn").addEventListener("click", () => { downloadReport(); closeDownloadModal(); });
 
   loadData();
 })();

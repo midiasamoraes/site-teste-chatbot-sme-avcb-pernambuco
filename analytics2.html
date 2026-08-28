@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Analytics — Leads e tempo real — Sá Moraes Engenharia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink:#17211b; --muted:#68736d; --paper:#f4f2eb; --card:#fffefa; --line:#deddd5;
+    --green:#174e3a; --green2:#236a50; --green-soft:#e8f1eb; --gold:#cda348; --gold-soft:#fbf5e8;
+    --danger:#a33b32; --warning:#8a6517; --shadow:0 16px 42px rgba(23,33,27,.08);
+    --hot:#a33b32; --hot-soft:#fbeceb; --warm:#8a6517; --warm-soft:#fbf5e8; --cold:#68736d; --cold-soft:#eef0ed;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 88% 2%, rgba(205,163,72,.16), transparent 28rem), var(--paper);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, select, input { font: inherit; cursor: pointer; }
+  a { color: var(--green2); }
+  .shell { width: min(1220px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 60px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 22px; flex-wrap: wrap; }
+  .eyebrow { margin: 0 0 8px; color: var(--green2); font-size: .76rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 0; font: 500 clamp(1.8rem,4vw,2.8rem)/1.05 Georgia,"Times New Roman",serif; letter-spacing: -.03em; }
+  .subtitle { max-width: 640px; margin: 10px 0 0; color: var(--muted); line-height: 1.5; font-size: .92rem; }
+  .btn { min-height: 42px; padding: 0 16px; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:hover { background: #f8f8f3; border-color: #babdb6; }
+  .btn-primary { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green2); border-color: var(--green2); }
+  .btn-invert { background: #fff; color: var(--green); border-color: var(--green); }
+  .btn-invert:hover { background: var(--green-soft); }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .kpi-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); position: relative; }
+  .kpi-label { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-value { font: 500 2rem/1 Georgia,"Times New Roman",serif; color: var(--green); }
+  .kpi-sub { margin-top: 6px; font-size: .78rem; color: var(--muted); }
+  .live-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--hot); margin-right: 6px; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
+  .card h3 { margin: 0 0 14px; font-size: .95rem; font-weight: 800; }
+  .card canvas { max-height: 260px; }
+  .empty-note { color: var(--muted); font-size: .85rem; text-align: center; padding: 30px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: .66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); position: sticky; top: 0; background: var(--card); }
+  tr:last-child td { border-bottom: none; }
+  .table-scroll { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+  .badge-hot { background: var(--hot-soft); color: var(--hot); }
+  .badge-warm { background: var(--warm-soft); color: var(--warm); }
+  .badge-cold { background: var(--cold-soft); color: var(--cold); }
+  .badge-green { background: var(--green-soft); color: var(--green); }
+
+  select.status-select { min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font-size: .78rem; }
+
+  .info-toggle { margin-top: 10px; }
+  .info-toggle summary { cursor: pointer; font-size: .78rem; font-weight: 700; color: var(--green2); list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+  .info-toggle summary::-webkit-details-marker { display: none; }
+  .info-toggle summary::before { content: "▸"; font-size: .7rem; transition: transform .15s ease; }
+  .info-toggle[open] summary::before { transform: rotate(90deg); }
+  .info-toggle-body { margin-top: 8px; font-size: .8rem; color: var(--muted); line-height: 1.5; background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+  .info-toggle-body strong { color: var(--ink); }
+
+  .page-nav { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 30px; }
+  .page-nav .page-nav-label { font-size: .8rem; color: var(--muted); font-weight: 700; }
+
+  .hotlead-feed { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+  .hotlead-item { display: flex; align-items: center; gap: 10px; background: var(--hot-soft); border: 1px solid #f0d3d0; border-radius: 10px; padding: 8px 12px; font-size: .82rem; }
+  .hotlead-item .hotlead-time { color: var(--muted); font-size: .72rem; margin-left: auto; white-space: nowrap; }
+
+  .lookup-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
+  .lookup-row input { min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: .82rem; width: 260px; }
+
+  .filters-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+  .filters-row select { min-height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; font-size: .8rem; }
+
+  #loadingNote { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+  #errorNote { color: var(--danger); font-size: .9rem; margin-bottom: 16px; display: none; background: #fbeceb; border: 1px solid #e6c3bf; border-radius: 10px; padding: 12px 14px; }
+  #realtimeNote { color: var(--muted); font-size: .75rem; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Painel interno · Sá Moraes Engenharia</p>
+        <h1>Leads e tempo real</h1>
+        <p class="subtitle">Página 2 do Analytics: quem está conversando agora, quais leads merecem contato prioritário, e um CRM simples para acompanhar cada um até o fechamento.</p>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="btn">← Voltar ao site</a>
+        <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar dados</button>
+      </div>
+    </header>
+
+    <div id="loadingNote">Carregando dados do Supabase…</div>
+    <div id="errorNote"></div>
+
+    <div id="dashboard" style="display:none;">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Conversando agora</div>
+          <div class="kpi-value"><span class="live-dot" id="onlineDot"></span><span id="kpiOnlineNow">0</span></div>
+          <div class="kpi-sub" id="onlineSub">pessoas com o chatbot aberto neste instante</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Leads quentes</div>
+          <div class="kpi-value" id="kpiHotLeads">0</div>
+          <div class="kpi-sub">completaram e clicaram no WhatsApp</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Leads mornos</div>
+          <div class="kpi-value" id="kpiWarmLeads">0</div>
+          <div class="kpi-sub">completaram mas não avançaram para contato</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Leads frios recuperáveis</div>
+          <div class="kpi-value" id="kpiColdLeads">0</div>
+          <div class="kpi-sub">começaram e não terminaram</div>
+        </div>
+      </div>
+      <details class="info-toggle" style="margin-bottom:22px;"><summary>O que são esses números?</summary><div class="info-toggle-body"><strong>Conversando agora</strong> usa a presença em tempo real do Supabase (quantas abas do chatbot estão abertas neste momento) — não depende de nenhuma tabela, por isso funciona mesmo sem rodar a migração SQL. <strong>Quente / morno / frio</strong> é a mesma classificação usada na lista de leads mais abaixo, contada aqui só para dar uma visão rápida do volume de cada grupo.</div></details>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Alerta de lead quente em tempo real</h3>
+          <div id="hotleadFeed" class="hotlead-feed"><div class="empty-note">Aguardando novos leads quentes… mantenha esta página aberta para ver em tempo real.</div></div>
+          <div id="realtimeNote"></div>
+          <details class="info-toggle"><summary>O que é isso?</summary><div class="info-toggle-body">Assim que alguém completa o questionário com Risco III, ou clica para falar no WhatsApp, um aviso aparece aqui na hora — sem precisar atualizar a página. Depende do Realtime estar habilitado na tabela <code>chatbot_sessions</code> (item da migração SQL); se aparecer um aviso de que o tempo real está indisponível, essa parte da migração ainda não foi rodada.</div></details>
+        </div>
+        <div class="card">
+          <h3>Origem do tráfego x conversão</h3>
+          <canvas id="chartUtm"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Cruza de onde a pessoa veio (UTM de campanha, ou o site que a trouxe) com quantas dessas conversas realmente terminaram em questionário completo. Um canal com muito volume mas baixa conversão pode estar trazendo público errado; um canal com pouco volume e alta conversão pode valer mais investimento.</div></details>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Priorização por risco/porte</h3>
+        <canvas id="chartPriority"></canvas>
+        <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Combina o nível de risco com a quantidade de documentos recomendados para estimar o porte do processo. "Alta prioridade" costuma indicar obras maiores e processos mais complexos — geralmente os leads que valem uma ligação antes dos outros.</div></details>
+      </div>
+
+      <div class="card">
+        <h3>Buscar cliente pelo código (hex) do questionário</h3>
+        <div class="lookup-row">
+          <input type="text" id="hexLookupInput" placeholder="Cole o código do questionário aqui">
+          <button class="btn btn-invert" id="hexLookupBtn" type="button">Buscar</button>
+        </div>
+        <div id="hexLookupResult"></div>
+        <details class="info-toggle"><summary>O que é isso?</summary><div class="info-toggle-body">Um CRM bem simples: cole o código que o cliente te mandou (por WhatsApp, e-mail, etc.) para identificar exatamente qual conversa é dele — nome, estabelecimento, risco, documentos e status — sem precisar procurar na lista.</div></details>
+      </div>
+
+      <div class="card">
+        <h3>Lista de leads</h3>
+        <div class="filters-row">
+          <select id="leadTempFilter">
+            <option value="all">Todas as temperaturas</option>
+            <option value="hot">Só quentes</option>
+            <option value="warm">Só mornos</option>
+            <option value="cold">Só frios recuperáveis</option>
+          </select>
+          <select id="leadStatusFilter">
+            <option value="all">Todos os status</option>
+            <option value="novo">Novo</option>
+            <option value="contatado">Contatado</option>
+            <option value="em_negociacao">Em negociação</option>
+            <option value="fechado">Fechado</option>
+            <option value="perdido">Perdido</option>
+          </select>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Estabelecimento</th>
+                <th>Risco</th>
+                <th>Prioridade</th>
+                <th>Temperatura</th>
+                <th>Status (CRM)</th>
+                <th>Data</th>
+                <th>Contato</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody"></tbody>
+          </table>
+        </div>
+        <details class="info-toggle"><summary>O que é essa lista?</summary><div class="info-toggle-body">Uma linha por conversa, já classificada e pronta para ação. O status é editável direto aqui (fica salvo no Supabase, visível para qualquer pessoa que abrir este painel). "Temperatura": <strong>quente</strong> = completou e clicou no WhatsApp; <strong>morno</strong> = completou mas nunca avançou para contato; <strong>frio recuperável</strong> = começou e não terminou (ainda dá para retomar contato, se houver como identificar a pessoa).</div></details>
+      </div>
+
+      <div class="page-nav">
+        <a href="analytics.html" class="btn" title="Página anterior — Visão geral">← Anterior</a>
+        <span class="page-nav-label">Página 2 de 2</span>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(function () {
+  const supabaseUrl = 'https://dpixswlqxredyfahgjvy.supabase.co';
+  const supabaseKey = 'sb_publishable_8ldstp8OyQSyypz9jyrDFQ_jHbMUUY7';
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const RISK_LABELS = { R1: "Risco I", R2: "Risco II", R3: "Risco III" };
+  const STATUS_LABELS = { novo: "Novo", contatado: "Contatado", em_negociacao: "Em negociação", fechado: "Fechado", perdido: "Perdido" };
+  const PALETTE = ["#174e3a", "#cda348", "#236a50", "#a33b32", "#68736d", "#8a6517", "#4f7d68", "#d9b877", "#3c5c4e", "#b98f3e"];
+
+  let allSessions = [];
+  const charts = {};
+  let leadTempFilterValue = "all";
+  let leadStatusFilterValue = "all";
+
+  function $(sel) { return document.querySelector(sel); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+  function makeChart(id, config) {
+    destroyChart(id);
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx, config);
+  }
+
+  // ---- Classificação de leads ----
+  function leadTemperature(s) {
+    if (s.completed && s.clicked_whatsapp) return "hot";
+    if (s.completed && !s.clicked_whatsapp) return "warm";
+    if (!s.completed && s.user_name) return "cold";
+    return "none"; // sem nome nem conclusão — não vira lead de verdade
+  }
+  function leadPriority(s) {
+    if (s.risk === "R3" || (s.doc_count || 0) >= 6) return "Alta";
+    if (s.risk === "R2" || (s.doc_count || 0) >= 3) return "Média";
+    return "Baixa";
+  }
+  function leadDateLabel(s) {
+    // Prioriza o timestamp do servidor; cai para o do cliente só se faltar, e sinaliza.
+    const iso = s.completed_at || s.started_at || s.client_completed_at || s.client_started_at;
+    if (!iso) return "—";
+    const usedClient = !(s.completed_at || s.started_at) && (s.client_completed_at || s.client_started_at);
+    const d = new Date(iso).toLocaleString("pt-BR");
+    return usedClient ? (d + " ⚠") : d;
+  }
+
+  async function loadData() {
+    $("#loadingNote").style.display = "block";
+    $("#errorNote").style.display = "none";
+    $("#dashboard").style.display = "none";
+    try {
+      const { data, error } = await supabaseClient.from("chatbot_sessions").select("*").order("started_at", { ascending: false });
+      if (error) throw error;
+      allSessions = data || [];
+      $("#dashboard").style.display = "block";
+      render();
+    } catch (e) {
+      console.error(e);
+      $("#errorNote").textContent = "Não foi possível carregar os dados do Supabase: " + (e.message || e);
+      $("#errorNote").style.display = "block";
+    } finally {
+      $("#loadingNote").style.display = "none";
+    }
+  }
+
+  function render() {
+    const leads = allSessions.filter(s => leadTemperature(s) !== "none");
+    const hot = leads.filter(s => leadTemperature(s) === "hot");
+    const warm = leads.filter(s => leadTemperature(s) === "warm");
+    const cold = leads.filter(s => leadTemperature(s) === "cold");
+    $("#kpiHotLeads").textContent = hot.length;
+    $("#kpiWarmLeads").textContent = warm.length;
+    $("#kpiColdLeads").textContent = cold.length;
+
+    renderUtmChart(allSessions);
+    renderPriorityChart(leads.filter(s => s.completed));
+    renderLeadsTable(leads);
+  }
+
+  function renderUtmChart(sessions) {
+    const groups = {};
+    sessions.forEach(s => {
+      const key = s.utm_source || (s.referrer ? (new URL(s.referrer, "http://x").hostname || s.referrer) : "Direto/sem origem");
+      if (!groups[key]) groups[key] = { total: 0, completed: 0 };
+      groups[key].total += 1;
+      if (s.completed) groups[key].completed += 1;
+    });
+    const labels = Object.keys(groups);
+    if (!labels.length) { destroyChart("chartUtm"); return; }
+    const rateData = labels.map(k => groups[k].total ? Math.round((groups[k].completed / groups[k].total) * 100) : 0);
+    const totalData = labels.map(k => groups[k].total);
+    makeChart("chartUtm", {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Volume", data: totalData, backgroundColor: PALETTE[4], yAxisID: "y" },
+          { label: "Taxa de conversão (%)", data: rateData, backgroundColor: PALETTE[0], yAxisID: "y1" }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, position: "left", ticks: { precision: 0 } },
+          y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false }, max: 100 }
+        },
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+  }
+
+  function renderPriorityChart(completedSessions) {
+    const counts = { Alta: 0, Média: 0, Baixa: 0 };
+    completedSessions.forEach(s => { counts[leadPriority(s)] += 1; });
+    if (!completedSessions.length) { destroyChart("chartPriority"); return; }
+    makeChart("chartPriority", {
+      type: "bar",
+      data: { labels: ["Alta", "Média", "Baixa"], datasets: [{ label: "Conversas completadas", data: [counts.Alta, counts["Média"], counts.Baixa], backgroundColor: [PALETTE[3], PALETTE[1], PALETTE[4]] }] },
+      options: { indexAxis: "y", responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function tempBadge(temp) {
+    if (temp === "hot") return '<span class="badge badge-hot">Quente</span>';
+    if (temp === "warm") return '<span class="badge badge-warm">Morno</span>';
+    return '<span class="badge badge-cold">Frio recuperável</span>';
+  }
+  function priorityBadge(p) {
+    if (p === "Alta") return '<span class="badge badge-hot">Alta</span>';
+    if (p === "Média") return '<span class="badge badge-warm">Média</span>';
+    return '<span class="badge badge-cold">Baixa</span>';
+  }
+
+  function renderLeadsTable(leads) {
+    const filtered = leads.filter(s => {
+      const temp = leadTemperature(s);
+      if (leadTempFilterValue !== "all" && temp !== leadTempFilterValue) return false;
+      const status = s.lead_status || "novo";
+      if (leadStatusFilterValue !== "all" && status !== leadStatusFilterValue) return false;
+      return true;
+    });
+    const tbody = $("#leadsTableBody");
+    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-note">Nenhum lead encontrado com esses filtros.</div></td></tr>'; return; }
+    tbody.innerHTML = filtered.map(s => {
+      const temp = leadTemperature(s);
+      const priority = leadPriority(s);
+      const status = s.lead_status || "novo";
+      const whatsapp = "https://wa.me/5581997460029?text=" + encodeURIComponent("Olá " + (s.user_name || "") + ", aqui é da Sá Moraes Engenharia sobre sua pré-análise de AVCB.");
+      const statusOptions = Object.keys(STATUS_LABELS).map(k => `<option value="${k}" ${k === status ? "selected" : ""}>${STATUS_LABELS[k]}</option>`).join("");
+      return `<tr>
+        <td>${escapeHtml(s.user_name || "—")}</td>
+        <td>${escapeHtml(s.establishment_id || "—")}</td>
+        <td>${escapeHtml(RISK_LABELS[s.risk] || "—")}</td>
+        <td>${priorityBadge(priority)}</td>
+        <td>${tempBadge(temp)}</td>
+        <td><select class="status-select" data-session="${escapeHtml(s.session_id)}">${statusOptions}</select></td>
+        <td>${leadDateLabel(s)}</td>
+        <td><a class="btn btn-invert" style="min-height:30px;padding:0 10px;font-size:.75rem;" href="${whatsapp}" target="_blank" rel="noopener">WhatsApp</a></td>
+      </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll(".status-select").forEach(sel => {
+      sel.addEventListener("change", async () => {
+        const sessionId = sel.getAttribute("data-session");
+        const newStatus = sel.value;
+        sel.disabled = true;
+        try {
+          const { error } = await supabaseClient.from("chatbot_sessions").update({ lead_status: newStatus }).eq("session_id", sessionId);
+          if (error) throw error;
+          const s = allSessions.find(x => x.session_id === sessionId);
+          if (s) s.lead_status = newStatus;
+        } catch (e) {
+          console.error("Não foi possível salvar o status do lead — a coluna lead_status existe no Supabase?", e);
+          alert("Não foi possível salvar o status. É provável que a migração SQL (coluna lead_status) ainda não tenha sido rodada no Supabase.");
+        } finally {
+          sel.disabled = false;
+        }
+      });
+    });
+  }
+
+  $("#leadTempFilter").addEventListener("change", (e) => { leadTempFilterValue = e.target.value; render(); });
+  $("#leadStatusFilter").addEventListener("change", (e) => { leadStatusFilterValue = e.target.value; render(); });
+
+  // ---- Busca por hex (CRM simples) ----
+  $("#hexLookupBtn").addEventListener("click", () => {
+    const code = ($("#hexLookupInput").value || "").trim().toUpperCase().replace(/[^0-9A-F]/g, "");
+    const box = $("#hexLookupResult");
+    if (!code) { box.innerHTML = '<div class="empty-note">Cole um código válido.</div>'; return; }
+    const match = allSessions.find(s => (s.hex_code || "").toUpperCase() === code);
+    if (!match) {
+      box.innerHTML = '<div class="empty-note">Nenhuma sessão encontrada com esse código exato (o código muda a cada geração — tente o código mais recente que o cliente enviou).</div>';
+      return;
+    }
+    box.innerHTML = `<table><tbody>
+      <tr><th>Nome</th><td>${escapeHtml(match.user_name || "—")}</td></tr>
+      <tr><th>Estabelecimento</th><td>${escapeHtml(match.establishment_id || "—")}</td></tr>
+      <tr><th>Risco</th><td>${escapeHtml(RISK_LABELS[match.risk] || "—")}</td></tr>
+      <tr><th>Documentos</th><td>${match.doc_count ?? "—"}</td></tr>
+      <tr><th>Concluiu?</th><td>${match.completed ? "Sim" : "Não"}</td></tr>
+      <tr><th>Status (CRM)</th><td>${STATUS_LABELS[match.lead_status || "novo"]}</td></tr>
+      <tr><th>Data</th><td>${leadDateLabel(match)}</td></tr>
+    </tbody></table>`;
+  });
+
+  // ---- Tempo real: presença (quantas pessoas conversando agora) ----
+  function startPresence() {
+    try {
+      const channel = supabaseClient.channel("chatbot-online", { config: { presence: { key: Math.random().toString(36).slice(2) } } });
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel.presenceState();
+          const count = Object.keys(state).length;
+          $("#kpiOnlineNow").textContent = count;
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED") {
+            await channel.track({ online_at: new Date().toISOString() });
+          }
+        });
+    } catch (e) {
+      console.error("Presença em tempo real indisponível", e);
+      $("#onlineSub").textContent = "tempo real indisponível no momento";
+    }
+  }
+
+  // ---- Tempo real: alerta de lead quente ----
+  function startHotLeadAlerts() {
+    try {
+      const channel = supabaseClient.channel("chatbot-hotleads");
+      channel.on("postgres_changes", { event: "*", schema: "public", table: "chatbot_sessions" }, (payload) => {
+        const s = payload.new;
+        if (!s) return;
+        const isHot = s.completed && (s.risk === "R3" || s.clicked_whatsapp);
+        if (!isHot) return;
+        addHotLeadFeedItem(s);
+        // Atualiza os dados em memória e re-renderiza a lista/KPIs sem precisar recarregar a página.
+        const idx = allSessions.findIndex(x => x.session_id === s.session_id);
+        if (idx >= 0) allSessions[idx] = s; else allSessions.unshift(s);
+        render();
+      }).subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          $("#realtimeNote").textContent = "⚠ Tempo real indisponível — provavelmente falta rodar a migração SQL que habilita o Realtime na tabela chatbot_sessions.";
+        }
+      });
+    } catch (e) {
+      console.error("Alerta em tempo real indisponível", e);
+      $("#realtimeNote").textContent = "⚠ Tempo real indisponível neste navegador.";
+    }
+  }
+
+  function addHotLeadFeedItem(s) {
+    const feed = $("#hotleadFeed");
+    if (feed.querySelector(".empty-note")) feed.innerHTML = "";
+    const reason = s.risk === "R3" ? "Risco III concluído" : "Clicou no WhatsApp";
+    const item = document.createElement("div");
+    item.className = "hotlead-item";
+    item.innerHTML = `<strong>${escapeHtml(s.user_name || "Alguém")}</strong> — ${escapeHtml(reason)}<span class="hotlead-time">${new Date().toLocaleTimeString("pt-BR")}</span>`;
+    feed.prepend(item);
+    while (feed.children.length > 8) feed.removeChild(feed.lastChild);
+  }
+
+  $("#refreshBtn").addEventListener("click", loadData);
+
+  loadData();
+  startPresence();
+  startHotLeadAlerts();
+})();
+</script>
+</body>
+</html>

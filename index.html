@@ -73,6 +73,38 @@
     .chat-input-area input { flex: 1; min-height: 44px; padding: 0 48px 0 16px; border: 1px solid var(--line); border-radius: 22px; outline: none; }
     .chat-input-area input:focus { border-color: var(--green2); box-shadow: 0 0 0 3px rgba(35,106,80,.12); }
     .chat-input-area input:disabled { background: #f9f9f9; cursor: not-allowed; }
+    #chatFullscreenClose {
+      display: none;
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 1000;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    }
+    #chatbotPanel.chat-fullscreen #chatFullscreenClose { display: flex; }
+    @media (max-width: 720px) {
+      #chatbotPanel.chat-fullscreen {
+        transition: top 2s ease, left 2s ease, width 2s ease, height 2s ease;
+        background: #fff;
+        overflow: hidden;
+      }
+      #chatbotPanel.chat-fullscreen .chat-container {
+        height: 100% !important;
+        min-height: 0 !important;
+        border-radius: 0;
+      }
+    }
     .chat-send-btn { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--green2); }
     .chat-send-btn svg { width: 14px; height: 14px; margin-left: -2px; margin-top: 1px; }
@@ -266,6 +298,7 @@
     </div>
 
     <div id="chatbotPanel">
+      <button id="chatFullscreenClose" type="button" aria-label="Fechar tela cheia" title="Voltar ao tamanho normal">&times;</button>
       <div class="chat-progress-ruler" id="chatProgressRuler">
         <div class="chat-progress-ruler-top">
           <span class="chat-progress-ruler-title">Progresso do questionário</span>
@@ -2881,6 +2914,9 @@ var qrcode = function() {
     }
     const ANSWER_RISK_CODES = { "": "0", R1: "1", R2: "2", R3: "3" };
     const ANSWER_RISK_CODES_REV = { "0": "", "1": "R1", "2": "R2", "3": "R3" };
+    // Época usada para os timestamps do hex: minutos contados a partir daqui (1/jan/2025),
+    // em vez de 1970 — com 6 dígitos hex isso cobre confortavelmente até por volta de 2056.
+    const CODE_EPOCH_MS = Date.UTC(2025, 0, 1, 0, 0, 0);
 
     // Nome do usuário dentro do código: cada byte UTF-8 do nome vira 2 dígitos hex.
     // Não precisa de separador porque o trecho de condições tem tamanho fixo e
@@ -2913,8 +2949,22 @@ var qrcode = function() {
       for (let i = 0; i < bits.length; i += 4) {
         condPart += parseInt(bits.slice(i, i + 4), 2).toString(16).toUpperCase();
       }
+      // Dois timestamps do usuário, comprimidos: o momento em que este código foi gerado
+      // (minutos desde CODE_EPOCH_MS, 6 dígitos hex — cobre décadas) e a duração da conversa,
+      // do nome confirmado até agora (minutos, 2 dígitos hex — o timer de sessão garante que
+      // isso nunca passa de ~59min, então 2 dígitos sobram). Isso evita gravar dois
+      // timestamps completos (economiza 8 dígitos) sem perder nenhuma das duas informações,
+      // já que o início é sempre reconstruível como "conclusão − duração".
+      const nowMs = s.__codeTimestamp || Date.now();
+      const minutesSinceEpoch = Math.max(0, Math.floor((nowMs - CODE_EPOCH_MS) / 60000));
+      const timestampPart = minutesSinceEpoch.toString(16).toUpperCase().padStart(6, "0").slice(-6);
+      let durationMin = 0;
+      if (s.nameConfirmedAt) {
+        durationMin = Math.max(0, Math.min(255, Math.round((nowMs - s.nameConfirmedAt) / 60000)));
+      }
+      const durationPart = durationMin.toString(16).toUpperCase().padStart(2, "0");
       const namePart = encodeNameToHex((s.userName || "").trim());
-      return estPart + riskPart + condPart + namePart;
+      return estPart + riskPart + condPart + timestampPart + durationPart + namePart;
     }
 
     // Retorna null se o código for inválido/vazio, ou { establishment, risk, conditions, userName }.
@@ -2932,8 +2982,21 @@ var qrcode = function() {
       }
       const conditions = { ...defaultConditions };
       getAnswerSchema().forEach((id, i) => { conditions[id] = bits[i] === "1"; });
-      const userName = decodeNameFromHex(clean.slice(4 + condLen));
-      return { establishment, risk, conditions, userName };
+      const tsHex = clean.slice(4 + condLen, 4 + condLen + 6);
+      const durHex = clean.slice(4 + condLen + 6, 4 + condLen + 8);
+      let timestamp = null;
+      let startTimestamp = null;
+      if (tsHex.length === 6 && /^[0-9A-F]+$/.test(tsHex)) {
+        const minutesSinceEpoch = parseInt(tsHex, 16);
+        const ms = CODE_EPOCH_MS + minutesSinceEpoch * 60000;
+        timestamp = new Date(ms).toISOString();
+        if (durHex.length === 2 && /^[0-9A-F]+$/.test(durHex)) {
+          const durationMin = parseInt(durHex, 16);
+          startTimestamp = new Date(ms - durationMin * 60000).toISOString();
+        }
+      }
+      const userName = decodeNameFromHex(clean.slice(4 + condLen + 8));
+      return { establishment, risk, conditions, userName, timestamp, startTimestamp };
     }
 
     // Roda computeRecommended() sobre um objeto de respostas arbitrário (ex.: vindo de um
@@ -2949,7 +3012,7 @@ var qrcode = function() {
     }
 
     function answersFromLiveState() {
-      return { establishment: state.establishment, risk: state.risk, conditions: { ...state.conditions }, userName: state.userName };
+      return { establishment: state.establishment, risk: state.risk, conditions: { ...state.conditions }, userName: state.userName, nameConfirmedAt: state.nameConfirmedAt };
     }
 
     // Converte o label (que pode conter HTML, inclusive listas <ul><li>) em texto legível
@@ -2976,6 +3039,13 @@ var qrcode = function() {
     function describeAnswers(answers) {
       const lines = [];
       lines.push({ label: "Nome", value: (answers.userName || "").trim() || "Não informado" });
+      const nameConfirmedDate = answers.startTimestamp ? new Date(answers.startTimestamp) : (answers.nameConfirmedAt ? new Date(answers.nameConfirmedAt) : null);
+      if (nameConfirmedDate) {
+        lines.push({ label: "Nome confirmado em", value: nameConfirmedDate.toLocaleString("pt-BR") });
+      }
+      if (answers.timestamp) {
+        lines.push({ label: "PDF gerado em", value: new Date(answers.timestamp).toLocaleString("pt-BR") });
+      }
       const est = establishments.find(e => e.id === answers.establishment);
       lines.push({ label: "Estabelecimento", value: est ? est.label : "Não informado" });
       const riskLabel = { R1: "Risco I", R2: "Risco II", R3: "Risco III" }[answers.risk] || "Não avaliado";
@@ -3136,7 +3206,7 @@ var qrcode = function() {
     const storageKey = "checklist-avcb-cbmpe-v8";
     const legacyStorageKeys = ["checklist-avcb-cbmpe-v7","checklist-avcb-cbmpe-v4"];
     const txtFileName = "grupos_avcb.txt";
-    let state = {checked:[], customGroups:[], establishment:"", risk:"", userName:"", conditions:{...defaultConditions}};
+    let state = {checked:[], customGroups:[], establishment:"", risk:"", userName:"", nameConfirmedAt:null, conditions:{...defaultConditions}};
     let fileHandle = null, writeQueue = Promise.resolve(), editingGroupId = null;
 
     const $ = s => document.querySelector(s);
@@ -3151,7 +3221,12 @@ var qrcode = function() {
         customGroups: Array.isArray(safe.customGroups) ? safe.customGroups.map(g=>({id:String(g.id||crypto.randomUUID?.()||Date.now()),name:String(g.name||"Grupo"),docs:uniq(g.docs||g.items||[])})).filter(g=>g.docs.length) : [],
         establishment: establishments.some(e=>e.id===safe.establishment) ? safe.establishment : "",
         risk: ["R1","R2","R3"].includes(safe.risk) ? safe.risk : "",
-        conditions: {...defaultConditions,...(safe.conditions||{})}
+        conditions: {...defaultConditions,...(safe.conditions||{})},
+        // Preservados num recarregamento de página no meio da conversa (bug antigo: antes
+        // eram descartados aqui, então um F5 no meio do chat perdia o nome já confirmado e
+        // reiniciava a contagem da 1h de sessão sem o usuário ter voltado à etapa do nome).
+        userName: typeof safe.userName === "string" ? safe.userName : "",
+        nameConfirmedAt: typeof safe.nameConfirmedAt === "number" ? safe.nameConfirmedAt : null
       };
     }
     const supabaseUrl = 'https://dpixswlqxredyfahgjvy.supabase.co';
@@ -3219,7 +3294,7 @@ var qrcode = function() {
         const meta = collectDeviceMeta();
         analyticsUpsertSession({
           user_name: name,
-          started_at: new Date().toISOString(),
+          client_started_at: new Date().toISOString(),
           hex_code: encodeAnswerCode(state),
           completed: false,
           ...meta
@@ -3275,6 +3350,12 @@ var qrcode = function() {
       analyticsLogEvent("whatsapp_click", { stage: stage || null });
     }
 
+    function analyticsCodeCopied() {
+      if (!chatSessionId) return;
+      analyticsUpsertSession({ code_copied: true });
+      analyticsLogEvent("code_copied", {});
+    }
+
     // Chamado ao final do questionário (finishChat), com o mesmo hex_code do PDF gerado.
     function analyticsComplete(finishAnswers, rec, docCode) {
       if (!chatSessionId) return;
@@ -3282,7 +3363,7 @@ var qrcode = function() {
         const est = (typeof getEstablishment === "function") ? getEstablishment() : null;
         analyticsUpsertSession({
           completed: true,
-          completed_at: new Date().toISOString(),
+          client_completed_at: new Date().toISOString(),
           hex_code: docCode,
           establishment_id: finishAnswers.establishment || null,
           establishment_type: est ? est.type : null,
@@ -3752,6 +3833,7 @@ var qrcode = function() {
       const panel = document.getElementById("chatbotPanel");
       const container = panel ? panel.querySelector(".chat-container") : null;
       if (!panel || !container || getComputedStyle(panel).display === "none") return;
+      if (panel.classList.contains("chat-fullscreen")) return;
       const shellEl = document.querySelector(".shell");
       const shellPadBottom = shellEl ? (parseFloat(getComputedStyle(shellEl).paddingBottom) || 0) : 0;
       const rect = container.getBoundingClientRect();
@@ -3785,6 +3867,72 @@ var qrcode = function() {
     const chatBackBtn = $("#chatBackBtn");
     const chatRestartBtn = $("#chatRestartBtn");
     const chatInputArea = $("#chatInputArea");
+
+    // Tela cheia no mobile: ao tocar na caixa de resposta, o chatbot expande
+    // para ocupar a tela toda (animação de 2s), com um X para fechar ou usando
+    // o botão de voltar do próprio celular.
+    const chatbotPanel = document.getElementById("chatbotPanel");
+    const chatFullscreenMql = window.matchMedia("(max-width: 720px)");
+    let chatFullscreenPushedState = false;
+    function enterChatFullscreen() {
+      if (!chatFullscreenMql.matches) return;
+      if (chatbotPanel.classList.contains("chat-fullscreen")) return;
+      const rect = chatbotPanel.getBoundingClientRect();
+      chatbotPanel.style.position = "fixed";
+      chatbotPanel.style.top = rect.top + "px";
+      chatbotPanel.style.left = rect.left + "px";
+      chatbotPanel.style.width = rect.width + "px";
+      chatbotPanel.style.height = rect.height + "px";
+      chatbotPanel.style.margin = "0";
+      chatbotPanel.style.zIndex = "999";
+      // força o navegador a aplicar os valores acima antes de trocar para os finais,
+      // para que a transição CSS (2s) realmente anime do tamanho atual até a tela cheia
+      chatbotPanel.getBoundingClientRect();
+      chatbotPanel.classList.add("chat-fullscreen");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          chatbotPanel.style.top = "0px";
+          chatbotPanel.style.left = "0px";
+          chatbotPanel.style.width = "100vw";
+          chatbotPanel.style.height = "100vh";
+        });
+      });
+      try {
+        history.pushState({ chatFullscreen: true }, "");
+        chatFullscreenPushedState = true;
+      } catch (e) {}
+    }
+    function exitChatFullscreen(fromPopstate) {
+      if (!chatbotPanel.classList.contains("chat-fullscreen")) return;
+      chatbotPanel.classList.remove("chat-fullscreen");
+      chatbotPanel.style.position = "";
+      chatbotPanel.style.top = "";
+      chatbotPanel.style.left = "";
+      chatbotPanel.style.width = "";
+      chatbotPanel.style.height = "";
+      chatbotPanel.style.margin = "";
+      chatbotPanel.style.zIndex = "";
+      fitChatbotBox();
+      if (!fromPopstate && chatFullscreenPushedState) {
+        chatFullscreenPushedState = false;
+        try { history.back(); } catch (e) {}
+      } else {
+        chatFullscreenPushedState = false;
+      }
+    }
+    window.addEventListener("popstate", () => {
+      if (chatbotPanel.classList.contains("chat-fullscreen")) {
+        exitChatFullscreen(true);
+      }
+    });
+    if (chatInput) {
+      chatInput.addEventListener("focus", enterChatFullscreen);
+      chatInput.addEventListener("click", enterChatFullscreen);
+    }
+    const chatFullscreenCloseBtn = $("#chatFullscreenClose");
+    if (chatFullscreenCloseBtn) {
+      chatFullscreenCloseBtn.addEventListener("click", () => exitChatFullscreen(false));
+    }
     let chatMultiSelectConfirm = null; // quando definido, Enviar/Enter confirma uma seleção múltipla em vez de responder normalmente
     let chatCurrentStepMsgCountBefore = 0; // nº de bolhas de chat antes da pergunta atual começar (para o "Voltar")
     let chatFinishRec = null; // Map de documentos calculada no fim do questionário — usada pelos botões "Documentos AVCB" embutidos no texto
@@ -3796,6 +3944,16 @@ var qrcode = function() {
       const btn = e.target.closest(".chat-inline-docs-open");
       if (!btn || !chatFinishRec) return;
       openDocsModal([...chatFinishRec.entries()], { printRec: chatFinishRec, answers: chatFinishAnswers });
+    });
+
+    // Registra no Analytics qualquer clique que abra o WhatsApp da empresa, não importa
+    // em qual botão/link — pega por delegação todo <a href="https://wa.me/..."> que
+    // aparecer dentro do chat (o botão com contagem regressiva de presentWhatsAppButton
+    // já chama analyticsWhatsappClick() diretamente, então não é afetado por esta regra).
+    chatMessages.addEventListener("click", (e) => {
+      const wppLink = e.target.closest('a[href^="https://wa.me/"]');
+      if (!wppLink) return;
+      if (typeof analyticsWhatsappClick === "function") analyticsWhatsappClick();
     });
 
     chatBackBtn.addEventListener("click", () => chatGoBack());
@@ -3820,11 +3978,47 @@ var qrcode = function() {
         chatRestartHideTimer = null;
       }, 2000);
     }
+    // ---- Timer de sessão: avisa a cada 10min (até 50min) e depois a cada 2min (até 60min),
+    // reiniciando a conversa automaticamente ao completar 1 hora com o chatbot aberto.
+    const CHAT_TIMEOUT_WARN_MINUTES = [10, 20, 30, 40, 50, 52, 54, 56, 58];
+    const CHAT_TIMEOUT_LIMIT_MINUTES = 60;
+    let chatSessionStartTime = null;
+    let chatSessionTimerId = null;
+    let chatWarnedMinutes = new Set();
+
+    function startChatSessionTimer() {
+      stopChatSessionTimer();
+      chatSessionStartTime = Date.now();
+      chatWarnedMinutes = new Set();
+      chatSessionTimerId = setInterval(checkChatSessionTimeout, 20000);
+    }
+    function stopChatSessionTimer() {
+      if (chatSessionTimerId) { clearInterval(chatSessionTimerId); chatSessionTimerId = null; }
+    }
+    async function checkChatSessionTimeout() {
+      if (!chatSessionStartTime) return;
+      // Questionário já concluído (ou aguardando decisão de nova consulta) — nada a expirar.
+      if (chatState === "DONE" || chatState === "RESTART") return;
+      const elapsedMin = (Date.now() - chatSessionStartTime) / 60000;
+      if (elapsedMin >= CHAT_TIMEOUT_LIMIT_MINUTES) {
+        stopChatSessionTimer();
+        await restartChat("timeout");
+        return;
+      }
+      for (const m of CHAT_TIMEOUT_WARN_MINUTES) {
+        if (elapsedMin >= m && !chatWarnedMinutes.has(m)) {
+          chatWarnedMinutes.add(m);
+          await addMetaBubble("Já se passaram " + m + " minutos sem interação. Por segurança, a conversa será reiniciada automaticamente após 1 hora sem interação.");
+        }
+      }
+    }
+
     chatRestartBtn?.addEventListener("click", () => restartChat());
 
-    async function restartChat() {
+    async function restartChat(reason) {
       chatEpoch++;
       analyticsRestart();
+      stopChatSessionTimer();
       if (chatRestartHideTimer) { clearTimeout(chatRestartHideTimer); chatRestartHideTimer = null; }
       if (chatRestartBtn) { chatRestartBtn.classList.remove("revealed"); chatRestartBtn.hidden = true; }
       chatHistory = [];
@@ -3834,6 +4028,7 @@ var qrcode = function() {
       chatFinishRec = null;
       chatFinishAnswers = null;
       state.userName = "";
+      state.nameConfirmedAt = null;
       state.establishment = "";
       state.conditions = {};
       if (typeof resetProgressTracking === "function") resetProgressTracking();
@@ -3847,6 +4042,9 @@ var qrcode = function() {
       chatInput.value = "";
       chatState = "NAME";
       updateBackButton();
+      if (reason === "timeout") {
+        await addMetaBubble("Sua conversa foi reiniciada automaticamente após 1 hora sem interação.");
+      }
       await addChatBubble("Olá! Sou o assistente virtual da Sá Moraes Engenharia. Pode me chamar de Sara.");
       await addChatBubble("Posso te ajudar a descobrir quais documentos você precisa providenciar para a regularização do AVCB.");
       await addChatBubble("Qual é o seu nome?");
@@ -3950,7 +4148,9 @@ var qrcode = function() {
            const name = formatPersonName(chatInput.value.trim());
            if(name.length > 0) {
               state.userName = name;
+              state.nameConfirmedAt = Date.now();
               startAnalyticsSession(name);
+              startChatSessionTimer();
               persist();
               addChatBubble(name, false);
               chatInput.value = "";
@@ -4133,8 +4333,10 @@ var qrcode = function() {
         })();
       } else if (entry.phase === "name") {
         state.userName = "";
+        state.nameConfirmedAt = null;
         setChatPhase("");
         chatState = "NAME";
+        stopChatSessionTimer();
         persist(); renderAll();
         chatInput.disabled = false;
         chatInput.value = "";
@@ -4851,6 +5053,7 @@ $("#docsModalCopyBtn").addEventListener("click", async () => {
   const code = encodeAnswerCode(docsModalAnswers);
   const ok = await copyTextToClipboard(code);
   showToast(ok ? "Código copiado para a área de transferência." : "Não foi possível copiar automaticamente. Código: " + code);
+  if (typeof analyticsCodeCopied === "function") analyticsCodeCopied();
 });
 
 $("#docCodeBtn").addEventListener("click", () => {
@@ -5081,6 +5284,11 @@ function printChecklist(rec, answers) {
   doc.write('<div class="print-footer">');
   doc.write('<div class="print-footer-code">Código do questionário: ' + answerCode + '</div>');
   doc.write('<div class="print-footer-note">Guarde este código para reabrir esta lista de documentos ou gerar o PDF novamente a qualquer momento.</div>');
+  doc.write('<div class="print-footer-note">Gerado em: ' + new Date().toLocaleString("pt-BR") + '</div>');
+  const printNameConfirmedDate = printAnswers.startTimestamp ? new Date(printAnswers.startTimestamp) : (printAnswers.nameConfirmedAt ? new Date(printAnswers.nameConfirmedAt) : null);
+  if (printNameConfirmedDate) {
+    doc.write('<div class="print-footer-note">Nome confirmado em: ' + printNameConfirmedDate.toLocaleString("pt-BR") + '</div>');
+  }
   doc.write('<div class="print-qr-row">');
   doc.write('<div class="print-qr-item">' + buildQrSvg(buildQuickAccessLink(printAnswers)) + '<div class="print-qr-caption">Acessar lista de documentos AVCB</div></div>');
   doc.write('<div class="print-qr-item">' + buildQrSvg(buildWhatsAppLink(printAnswers)) + '<div class="print-qr-caption">Falar com um técnico da Sá Moraes Engenharia</div></div>');
