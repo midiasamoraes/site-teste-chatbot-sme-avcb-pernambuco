@@ -60,6 +60,7 @@
   tr:last-child td { border-bottom: none; }
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(23,33,27,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .modal-overlay[hidden] { display: none; }
   .modal-box { position: relative; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 28px; width: min(360px, 100%); }
   .modal-box h3 { margin: 0 0 18px; font-size: 1.05rem; }
   .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.3rem; line-height: 1; color: var(--muted); }
