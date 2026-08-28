@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Analytics — Chatbot AVCB — Sá Moraes Engenharia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink:#17211b; --muted:#68736d; --paper:#f4f2eb; --card:#fffefa; --line:#deddd5;
+    --green:#174e3a; --green2:#236a50; --green-soft:#e8f1eb; --gold:#cda348; --gold-soft:#fbf5e8;
+    --danger:#a33b32; --warning:#8a6517; --shadow:0 16px 42px rgba(23,33,27,.08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 88% 2%, rgba(205,163,72,.16), transparent 28rem), var(--paper);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, select, input { font: inherit; cursor: pointer; }
+  a { color: var(--green2); }
+  .shell { width: min(1220px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 60px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 22px; flex-wrap: wrap; }
+  .eyebrow { margin: 0 0 8px; color: var(--green2); font-size: .76rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 0; font: 500 clamp(1.8rem,4vw,2.8rem)/1.05 Georgia,"Times New Roman",serif; letter-spacing: -.03em; }
+  .subtitle { max-width: 640px; margin: 10px 0 0; color: var(--muted); line-height: 1.5; font-size: .92rem; }
+  .btn { min-height: 42px; padding: 0 16px; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:hover { background: #f8f8f3; border-color: #babdb6; }
+  .btn-primary { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green2); border-color: var(--green2); }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 22px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .field input, .field select { min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; outline: none; font-size: .85rem; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .kpi-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .kpi-label { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-value { font: 500 2rem/1 Georgia,"Times New Roman",serif; color: var(--green); }
+  .kpi-sub { margin-top: 6px; font-size: .78rem; color: var(--muted); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 14px; font-size: .95rem; font-weight: 800; }
+  .card canvas { max-height: 280px; }
+  .empty-note { color: var(--muted); font-size: .85rem; text-align: center; padding: 30px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+
+  .download-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
+  #loadingNote { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+  #errorNote { color: var(--danger); font-size: .9rem; margin-bottom: 16px; display: none; background: #fbeceb; border: 1px solid #e6c3bf; border-radius: 10px; padding: 12px 14px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+  .badge-green { background: var(--green-soft); color: var(--green); }
+  .badge-gold { background: var(--gold-soft); color: var(--warning); }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Painel interno · Sá Moraes Engenharia</p>
+        <h1>Analytics do Chatbot AVCB</h1>
+        <p class="subtitle">Visão consolidada de todas as conversas do assistente virtual: quantas são iniciadas, quantas são concluídas, e o perfil de quem completa o questionário. Dados vindos diretamente da tabela do Supabase.</p>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="btn">← Voltar ao site</a>
+        <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar dados</button>
+      </div>
+    </header>
+
+    <div id="loadingNote">Carregando dados do Supabase…</div>
+    <div id="errorNote"></div>
+
+    <div class="filters" id="filtersRow" style="display:none;">
+      <div class="field">
+        <label for="filterFrom">De</label>
+        <input type="date" id="filterFrom">
+      </div>
+      <div class="field">
+        <label for="filterTo">Até</label>
+        <input type="date" id="filterTo">
+      </div>
+      <div class="field">
+        <label for="filterStatus">Status</label>
+        <select id="filterStatus">
+          <option value="all">Todas</option>
+          <option value="completed">Somente completadas</option>
+          <option value="incomplete">Somente não completadas</option>
+        </select>
+      </div>
+      <button class="btn" id="applyFiltersBtn" type="button">Filtrar</button>
+      <button class="btn" id="clearFiltersBtn" type="button">Limpar filtros</button>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Interações totais</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-sub" id="kpiTotalSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Completadas</div>
+          <div class="kpi-value" id="kpiCompleted">0</div>
+          <div class="kpi-sub" id="kpiCompletedSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Não completadas</div>
+          <div class="kpi-value" id="kpiIncomplete">0</div>
+          <div class="kpi-sub" id="kpiIncompleteSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxa de conclusão</div>
+          <div class="kpi-value" id="kpiRate">0%</div>
+          <div class="kpi-sub" id="kpiRateSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tempo médio (completas)</div>
+          <div class="kpi-value" id="kpiAvgTime">–</div>
+          <div class="kpi-sub">do nome digitado ao PDF gerado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Documentos médios recomendados</div>
+          <div class="kpi-value" id="kpiAvgDocs">–</div>
+          <div class="kpi-sub">nas conversas completadas</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Interações por dia (completadas x não completadas)</h3>
+          <canvas id="chartTimeline"></canvas>
+        </div>
+        <div class="card">
+          <h3>Onde as conversas não completadas param</h3>
+          <canvas id="chartFunnel"></canvas>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Nível de risco (completadas)</h3>
+          <canvas id="chartRisk"></canvas>
+        </div>
+        <div class="card">
+          <h3>Tipo de estabelecimento — letra (completadas)</h3>
+          <canvas id="chartEstabType"></canvas>
+        </div>
+        <div class="card">
+          <h3>Dispositivo</h3>
+          <canvas id="chartDevice"></canvas>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Top 10 estabelecimentos específicos (completadas)</h3>
+          <div id="topEstabTable"></div>
+        </div>
+        <div class="card">
+          <h3>Engajamento pós-questionário</h3>
+          <div id="engagementTable"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <h3>Navegador e idioma</h3>
+        <div class="grid-2" style="margin-bottom:0;">
+          <div><canvas id="chartBrowser"></canvas></div>
+          <div id="languageTable"></div>
+        </div>
+      </div>
+
+      <div class="download-row">
+        <button class="btn btn-primary" id="downloadRawBtn" type="button">⬇ Baixar banco de dados (bruto, CSV)</button>
+        <button class="btn btn-primary" id="downloadReportBtn" type="button">⬇ Baixar relatório processado (HTML)</button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(function () {
+  const supabaseUrl = 'https://dpixswlqxredyfahgjvy.supabase.co';
+  const supabaseKey = 'sb_publishable_8ldstp8OyQSyypz9jyrDFQ_jHbMUUY7';
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const CHAT_STAGE_ORDER = ["risk", "estabelecimento", "instalacoes", "processo"];
+  const STAGE_LABELS = { risk: "Risco", estabelecimento: "Estabelecimento", instalacoes: "Instalações", processo: "Processo", null: "Não iniciou (sem nome)" };
+  const RISK_LABELS = { R1: "Risco I", R2: "Risco II", R3: "Risco III" };
+
+  let allSessions = [];
+  let allEvents = [];
+  let filtered = [];
+  const charts = {};
+
+  function $(sel) { return document.querySelector(sel); }
+  function fmtPct(n) { return (Math.round(n * 1000) / 10) + "%"; }
+  function fmtDuration(ms) {
+    if (!isFinite(ms) || ms <= 0) return "–";
+    const totalSec = Math.round(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return m > 0 ? (m + "min " + s + "s") : (s + "s");
+  }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  const PALETTE = ["#174e3a", "#cda348", "#236a50", "#a33b32", "#68736d", "#8a6517", "#4f7d68", "#d9b877", "#3c5c4e", "#b98f3e"];
+
+  async function loadData() {
+    $("#loadingNote").style.display = "block";
+    $("#errorNote").style.display = "none";
+    $("#dashboard").style.display = "none";
+    try {
+      const [sessionsRes, eventsRes] = await Promise.all([
+        supabaseClient.from("chatbot_sessions").select("*").order("started_at", { ascending: true }),
+        supabaseClient.from("chatbot_events").select("session_id,event_type,payload,created_at").order("created_at", { ascending: true })
+      ]);
+      if (sessionsRes.error) throw sessionsRes.error;
+      if (eventsRes.error) throw eventsRes.error;
+      allSessions = sessionsRes.data || [];
+      allEvents = eventsRes.data || [];
+      $("#filtersRow").style.display = "flex";
+      applyFilters();
+    } catch (e) {
+      console.error(e);
+      $("#errorNote").textContent = "Não foi possível carregar os dados do Supabase: " + (e.message || e);
+      $("#errorNote").style.display = "block";
+    } finally {
+      $("#loadingNote").style.display = "none";
+    }
+  }
+
+  function applyFilters() {
+    const from = $("#filterFrom").value ? new Date($("#filterFrom").value + "T00:00:00Z") : null;
+    const to = $("#filterTo").value ? new Date($("#filterTo").value + "T23:59:59Z") : null;
+    const status = $("#filterStatus").value;
+    filtered = allSessions.filter(s => {
+      const started = s.started_at ? new Date(s.started_at) : null;
+      if (from && started && started < from) return false;
+      if (to && started && started > to) return false;
+      if (status === "completed" && !s.completed) return false;
+      if (status === "incomplete" && s.completed) return false;
+      return true;
+    });
+    render();
+  }
+
+  function clearFilters() {
+    $("#filterFrom").value = "";
+    $("#filterTo").value = "";
+    $("#filterStatus").value = "all";
+    applyFilters();
+  }
+
+  function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  }
+
+  function makeChart(id, config) {
+    destroyChart(id);
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx, config);
+  }
+
+  function render() {
+    $("#dashboard").style.display = "block";
+    const total = filtered.length;
+    const completed = filtered.filter(s => s.completed);
+    const incomplete = filtered.filter(s => !s.completed);
+
+    $("#kpiTotal").textContent = total;
+    $("#kpiTotalSub").textContent = total === 0 ? "Nenhuma interação no período" : "no período selecionado";
+    $("#kpiCompleted").textContent = completed.length;
+    $("#kpiCompletedSub").textContent = total ? fmtPct(completed.length / total) + " do total" : "";
+    $("#kpiIncomplete").textContent = incomplete.length;
+    $("#kpiIncompleteSub").textContent = total ? fmtPct(incomplete.length / total) + " do total" : "";
+    $("#kpiRate").textContent = total ? fmtPct(completed.length / total) : "0%";
+    $("#kpiRateSub").textContent = "concluíram o questionário até o PDF";
+
+    // Tempo médio de conclusão
+    const durations = completed
+      .filter(s => s.started_at && s.completed_at)
+      .map(s => new Date(s.completed_at) - new Date(s.started_at))
+      .filter(d => d > 0 && d < 1000 * 60 * 60 * 2); // descarta outliers > 2h (aba deixada aberta)
+    const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : NaN;
+    $("#kpiAvgTime").textContent = fmtDuration(avgDuration);
+
+    const docCounts = completed.filter(s => typeof s.doc_count === "number").map(s => s.doc_count);
+    const avgDocs = docCounts.length ? (docCounts.reduce((a, b) => a + b, 0) / docCounts.length) : NaN;
+    $("#kpiAvgDocs").textContent = isFinite(avgDocs) ? (Math.round(avgDocs * 10) / 10) : "–";
+
+    renderTimeline();
+    renderFunnel(incomplete);
+    renderRisk(completed);
+    renderEstabType(completed);
+    renderDevice(filtered);
+    renderBrowserLanguage(filtered);
+    renderTopEstabelecimentos(completed);
+    renderEngagement(completed);
+  }
+
+  function dayKey(d) {
+    const dt = new Date(d);
+    return dt.toISOString().slice(0, 10);
+  }
+
+  function renderTimeline() {
+    const byDay = {};
+    filtered.forEach(s => {
+      if (!s.started_at) return;
+      const k = dayKey(s.started_at);
+      if (!byDay[k]) byDay[k] = { completed: 0, incomplete: 0 };
+      byDay[k][s.completed ? "completed" : "incomplete"] += 1;
+    });
+    const days = Object.keys(byDay).sort();
+    if (!days.length) { destroyChart("chartTimeline"); return; }
+    makeChart("chartTimeline", {
+      type: "bar",
+      data: {
+        labels: days,
+        datasets: [
+          { label: "Completadas", data: days.map(d => byDay[d].completed), backgroundColor: PALETTE[0] },
+          { label: "Não completadas", data: days.map(d => byDay[d].incomplete), backgroundColor: PALETTE[1] }
+        ]
+      },
+      options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderFunnel(incomplete) {
+    const counts = { null: 0, risk: 0, estabelecimento: 0, instalacoes: 0, processo: 0 };
+    incomplete.forEach(s => {
+      const stage = s.last_stage && CHAT_STAGE_ORDER.includes(s.last_stage) ? s.last_stage : "null";
+      counts[stage] = (counts[stage] || 0) + 1;
+    });
+    const labels = ["null", ...CHAT_STAGE_ORDER].map(k => STAGE_LABELS[k]);
+    const data = ["null", ...CHAT_STAGE_ORDER].map(k => counts[k] || 0);
+    if (!incomplete.length) { destroyChart("chartFunnel"); return; }
+    makeChart("chartFunnel", {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Conversas paradas nesta etapa", data, backgroundColor: PALETTE[2] }] },
+      options: { indexAxis: "y", responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function renderRisk(completed) {
+    const counts = { R1: 0, R2: 0, R3: 0, "—": 0 };
+    completed.forEach(s => { counts[RISK_LABELS[s.risk] ? s.risk : "—"] = (counts[RISK_LABELS[s.risk] ? s.risk : "—"] || 0) + 1; });
+    const labels = ["R1", "R2", "R3", "—"].filter(k => counts[k] > 0).map(k => k === "—" ? "Não identificado" : RISK_LABELS[k]);
+    const data = ["R1", "R2", "R3", "—"].filter(k => counts[k] > 0).map(k => counts[k]);
+    if (!completed.length) { destroyChart("chartRisk"); return; }
+    makeChart("chartRisk", {
+      type: "doughnut",
+      data: { labels, datasets: [{ data, backgroundColor: PALETTE }] },
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderEstabType(completed) {
+    const counts = {};
+    completed.forEach(s => {
+      const t = s.establishment_type || "—";
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    const labels = Object.keys(counts).sort();
+    const data = labels.map(k => counts[k]);
+    if (!labels.length) { destroyChart("chartEstabType"); return; }
+    makeChart("chartEstabType", {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Conversas completadas", data, backgroundColor: PALETTE[3] }] },
+      options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function renderDevice(list) {
+    const counts = {};
+    list.forEach(s => { const d = s.device_type || "desconhecido"; counts[d] = (counts[d] || 0) + 1; });
+    const labels = Object.keys(counts);
+    const data = labels.map(k => counts[k]);
+    if (!labels.length) { destroyChart("chartDevice"); return; }
+    makeChart("chartDevice", {
+      type: "pie",
+      data: { labels, datasets: [{ data, backgroundColor: PALETTE }] },
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderBrowserLanguage(list) {
+    const browserCounts = {};
+    list.forEach(s => { const b = s.browser || "outro"; browserCounts[b] = (browserCounts[b] || 0) + 1; });
+    const bLabels = Object.keys(browserCounts);
+    const bData = bLabels.map(k => browserCounts[k]);
+    if (bLabels.length) {
+      makeChart("chartBrowser", {
+        type: "bar",
+        data: { labels: bLabels, datasets: [{ label: "Sessões", data: bData, backgroundColor: PALETTE[4] }] },
+        options: { indexAxis: "y", responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+      });
+    } else { destroyChart("chartBrowser"); }
+
+    const langCounts = {};
+    list.forEach(s => { const l = s.language || "—"; langCounts[l] = (langCounts[l] || 0) + 1; });
+    const rows = Object.entries(langCounts).sort((a, b) => b[1] - a[1]);
+    const el = $("#languageTable");
+    if (!rows.length) { el.innerHTML = '<div class="empty-note">Sem dados.</div>'; return; }
+    el.innerHTML = "<table><thead><tr><th>Idioma do navegador</th><th>Sessões</th></tr></thead><tbody>" +
+      rows.map(([lang, n]) => `<tr><td>${escapeHtml(lang)}</td><td>${n}</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+
+  function renderTopEstabelecimentos(completed) {
+    const counts = {};
+    completed.forEach(s => {
+      const id = s.establishment_id || "—";
+      counts[id] = (counts[id] || 0) + 1;
+    });
+    const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const el = $("#topEstabTable");
+    if (!rows.length) { el.innerHTML = '<div class="empty-note">Sem conversas completadas ainda.</div>'; return; }
+    el.innerHTML = "<table><thead><tr><th>Estabelecimento</th><th>Conversas</th></tr></thead><tbody>" +
+      rows.map(([id, n]) => `<tr><td>${escapeHtml(id)}</td><td>${n}</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+
+  function renderEngagement(completed) {
+    const el = $("#engagementTable");
+    const total = completed.length;
+    if (!total) { el.innerHTML = '<div class="empty-note">Sem conversas completadas ainda.</div>'; return; }
+    const docsClicks = completed.filter(s => s.clicked_docs_button).length;
+    const wppClicks = completed.filter(s => s.clicked_whatsapp).length;
+    const avgBack = completed.reduce((a, s) => a + (s.back_clicks || 0), 0) / total;
+    const restarts = completed.filter(s => (s.restart_count || 0) > 0).length;
+    el.innerHTML = `<table><tbody>
+      <tr><td>Clicaram em "Documentos AVCB"</td><td>${docsClicks} (${fmtPct(docsClicks/total)})</td></tr>
+      <tr><td>Clicaram para falar no WhatsApp</td><td>${wppClicks} (${fmtPct(wppClicks/total)})</td></tr>
+      <tr><td>Média de cliques em "Voltar"</td><td>${(Math.round(avgBack*10)/10)}</td></tr>
+      <tr><td>Reiniciaram a conversa ao menos uma vez</td><td>${restarts} (${fmtPct(restarts/total)})</td></tr>
+    </tbody></table>`;
+  }
+
+  // ---- Downloads ----
+  function csvEscape(v) {
+    if (v === null || v === undefined) return "";
+    const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function downloadFile(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function downloadRaw() {
+    if (!allSessions.length) return;
+    const cols = Object.keys(allSessions[0]);
+    const lines = [cols.join(",")];
+    allSessions.forEach(row => lines.push(cols.map(c => csvEscape(row[c])).join(",")));
+    downloadFile("chatbot_sessions_" + new Date().toISOString().slice(0, 10) + ".csv", lines.join("\n"), "text/csv;charset=utf-8");
+  }
+
+  function downloadReport() {
+    const total = filtered.length;
+    const completed = filtered.filter(s => s.completed);
+    const chartImgs = {};
+    ["chartTimeline", "chartFunnel", "chartRisk", "chartEstabType", "chartDevice", "chartBrowser"].forEach(id => {
+      if (charts[id]) chartImgs[id] = charts[id].toBase64Image();
+    });
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+      <title>Relatório Analytics — Chatbot AVCB — ${new Date().toLocaleDateString("pt-BR")}</title>
+      <style>
+        body{font-family:Inter,Arial,sans-serif;color:#17211b;max-width:900px;margin:40px auto;padding:0 20px;}
+        h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:36px;border-bottom:1px solid #deddd5;padding-bottom:6px}
+        img{max-width:100%;border:1px solid #deddd5;border-radius:8px;margin:12px 0}
+        table{width:100%;border-collapse:collapse;font-size:.9rem} td,th{padding:6px 10px;border-bottom:1px solid #eee;text-align:left}
+        .kpi{display:inline-block;margin:8px 20px 8px 0}
+        .kpi b{font-size:1.4rem;display:block}
+      </style></head><body>
+      <h1>Relatório de Analytics — Chatbot AVCB</h1>
+      <p>Gerado em ${new Date().toLocaleString("pt-BR")} · ${total} interação(ões) no período filtrado.</p>
+      <div>
+        <div class="kpi"><b>${total}</b>Total</div>
+        <div class="kpi"><b>${completed.length}</b>Completadas</div>
+        <div class="kpi"><b>${total ? fmtPct(completed.length/total) : "0%"}</b>Taxa de conclusão</div>
+        <div class="kpi"><b>${$("#kpiAvgTime").textContent}</b>Tempo médio</div>
+      </div>
+      ${Object.entries(chartImgs).map(([id, img]) => `<h2>${document.querySelector('#'+id).closest('.card').querySelector('h3').textContent}</h2><img src="${img}">`).join("")}
+      <h2>Top estabelecimentos</h2>
+      ${$("#topEstabTable").innerHTML}
+      <h2>Engajamento pós-questionário</h2>
+      ${$("#engagementTable").innerHTML}
+      </body></html>`;
+    downloadFile("relatorio_analytics_" + new Date().toISOString().slice(0, 10) + ".html", html, "text/html;charset=utf-8");
+  }
+
+  $("#refreshBtn").addEventListener("click", loadData);
+  $("#applyFiltersBtn").addEventListener("click", applyFilters);
+  $("#clearFiltersBtn").addEventListener("click", clearFilters);
+  $("#downloadRawBtn").addEventListener("click", downloadRaw);
+  $("#downloadReportBtn").addEventListener("click", downloadReport);
+
+  loadData();
+})();
+</script>
+</body>
+</html>
