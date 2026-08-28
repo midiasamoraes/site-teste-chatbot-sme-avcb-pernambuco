@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - Sala de Estudo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{ background:#f4f1ea; min-height:100vh; }
+  .admin-wrap{ max-width:980px; margin:0 auto; padding:2.5rem 1.5rem 5rem; }
+  .admin-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:12px; }
+  .admin-top h1{ font-family:var(--font-display); font-size:1.6rem; color:var(--color-blue); margin:0; }
+  .admin-back{ color:var(--color-blue); font-weight:600; text-decoration:none; font-size:0.9rem; }
+  .admin-back:hover{ text-decoration:underline; }
+  .admin-card{ background:#fff; border:2px solid var(--color-blue); border-radius:14px; padding:1.75rem; margin-bottom:1.75rem; box-shadow:-6px 6px 0 rgba(0,78,181,0.12); }
+  .admin-card h2{ font-family:var(--font-display); font-size:1.1rem; color:var(--color-blue); margin:0 0 0.35rem; }
+  .admin-card .admin-desc{ color:#6b6b6b; font-size:0.85rem; margin:0 0 1.1rem; }
+  .admin-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .admin-field{ flex:1; min-width:220px; }
+  .admin-field.full{ flex:1 1 100%; }
+  .admin-field label{ display:block; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-blue); margin-bottom:5px; }
+  .admin-field input[type="text"],
+  .admin-field input[type="password"],
+  .admin-field select,
+  .admin-field textarea{
+    width:100%; padding:10px 12px; border:2px solid #d8d3c4; border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:0.9rem; color:#2b2b2b; background:#fdfdfb;
+  }
+  .admin-field select{ cursor:pointer; }
+  .admin-field textarea{ resize:vertical; min-height:90px; }
+  .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus{
+    outline:none; border-color:var(--color-blue); box-shadow:0 0 0 3px rgba(0,78,181,0.12);
+  }
+  .abtn{ display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border-radius:8px; border:2px solid var(--color-blue);
+    background:var(--color-yellow); color:var(--color-blue); font-weight:700; font-size:0.85rem; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .abtn:hover{ transform:translate(-2px,-2px); box-shadow:-3px 3px 0 var(--color-blue); }
+  .abtn.secondary{ background:#fff; }
+  .abtn.ghost{ background:transparent; border-color:#d8d3c4; color:#6b6b6b; }
+  .abtn.small{ padding:6px 12px; font-size:0.75rem; }
+  .abtn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .admin-status{ font-size:0.8rem; margin-top:8px; }
+  .admin-status.ok{ color:#0a8a3f; }
+  .admin-status.err{ color:#c0392b; }
+  .skill-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:1.25rem; }
+  .skill-item{ border:2px solid #e5e0d3; border-radius:10px; padding:12px 14px; }
+  .skill-item-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .skill-item-head strong{ color:var(--color-blue); }
+  .skill-tag{ font-size:0.7rem; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:20px; }
+  .skill-tag.texto{ background:#e3edff; color:var(--color-blue); }
+  .skill-tag.imagem{ background:#fff4cc; color:#8a6d00; }
+  .skill-item-actions{ display:flex; gap:6px; }
+  .skill-item-actions button{ font-size:0.75rem; padding:4px 10px; border-radius:6px; border:1px solid #d8d3c4; background:#fff; cursor:pointer; }
+  .skill-item pre{ white-space:pre-wrap; word-break:break-word; font-family:'Inter',sans-serif; font-size:0.82rem; color:#555; margin:8px 0 0; }
+  .new-skill-form{ border-top:2px dashed #e5e0d3; padding-top:14px; margin-top:6px; display:none; }
+  .new-skill-form.open{ display:block; }
+  .theme-subblock{ margin-top:10px; }
+  .theme-subblock .subblock-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .edit-mode-toggle{ display:flex; align-items:center; gap:8px; font-size:0.82rem; color:#6b6b6b; cursor:pointer; margin-bottom:1rem; user-select:none; }
+  .edit-mode-toggle input{ width:16px; height:16px; accent-color:var(--color-blue); cursor:pointer; }
+  .skill-item-actions{ display:none; }
+  .skill-list.edit-mode .skill-item-actions{ display:flex; }
+  .theme-toggle{ display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; gap:10px; }
+  .theme-toggle strong{ color:var(--color-blue); font-size:0.95rem; }
+  .theme-toggle .chev{ font-size:1rem; color:var(--color-blue); transition:transform .2s ease; flex-shrink:0; }
+  .theme-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+  .theme-body{ overflow:hidden; max-height:0; transition:max-height .25s ease; }
+  .theme-body.open{ max-height:4000px; }
+  .theme-body-inner{ padding-top:10px; }
+  .prompt-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .prompt-actions button{ font-size:0.72rem; padding:3px 9px; border-radius:6px; border:1px solid #d8d3c4; background:#fff; cursor:pointer; white-space:nowrap; }
+  .prompt-actions button.use-prompt{ border-color:var(--color-blue); color:var(--color-blue); font-weight:700; }
+  .theme-origin{ font-size:0.65rem; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:20px; background:#eee6d3; color:#6b6b6b; margin-left:6px; }
+  .theme-origin.ia{ background:#e9e0ff; color:#5a3fc0; }
+  .ia-field-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .ia-field-head label{ margin:0; }
+  .output-box{ margin-top:1rem; border:2px dashed #d8d3c4; border-radius:10px; padding:14px; min-height:60px; }
+  .output-box textarea{ width:100%; min-height:140px; border:none; background:transparent; font-family:'Inter',sans-serif; font-size:0.9rem; resize:vertical; }
+  .output-box img{ max-width:100%; border-radius:8px; display:block; margin-bottom:10px; }
+  .hint{ font-size:0.78rem; color:#8a6d00; background:#fff8e1; border:1px solid #ffe28a; border-radius:8px; padding:10px 12px; margin-top:10px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media (max-width:760px){ .grid-2{ grid-template-columns:1fr; } }
+
+  /* --- key manager --- */
+  .key-list{ display:flex; flex-direction:column; gap:8px; margin:12px 0 16px; }
+  .key-row{ display:flex; align-items:center; gap:10px; border:2px solid #e5e0d3; border-radius:8px; padding:8px 12px; flex-wrap:wrap; }
+  .key-row.active{ border-color:var(--color-blue); background:#f2f6ff; }
+  .key-row .key-label{ font-weight:700; color:var(--color-blue); font-size:0.85rem; min-width:80px; }
+  .key-row .key-masked{ font-family:monospace; font-size:0.82rem; color:#6b6b6b; flex:1; min-width:120px; }
+  .key-row .key-active-pill{ font-size:0.65rem; font-weight:700; text-transform:uppercase; background:var(--color-yellow); color:var(--color-blue); padding:2px 8px; border-radius:20px; }
+  .key-row .key-actions{ display:flex; gap:6px; }
+  .add-key-form{ border-top:2px dashed #e5e0d3; padding-top:14px; }
+
+  /* --- accordion (skills, api keys, prompts de emergência) --- */
+  .accordion-toggle{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:none; border:none; padding:0; cursor:pointer; text-align:left;
+  }
+  .accordion-toggle .chev{ font-size:1.1rem; color:var(--color-blue); transition:transform .2s ease; flex-shrink:0; }
+  .accordion-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+  .accordion-body{ overflow:hidden; max-height:0; transition:max-height .25s ease; }
+  .accordion-body.open{ max-height:4000px; }
+  .accordion-body-inner{ padding-top:1.1rem; }
+
+  /* --- histórico --- */
+  .storage-info{ font-size:0.78rem; color:#6b6b6b; margin:0 0 1rem; }
+  .storage-bar{ width:100%; height:6px; border-radius:4px; background:#eee6d3; overflow:hidden; margin-top:4px; }
+  .storage-bar-fill{ height:100%; background:var(--color-blue); border-radius:4px; transition:width .3s ease; }
+  .storage-bar-fill.warn{ background:#c0392b; }
+  .history-list{ display:flex; flex-direction:column; gap:12px; }
+  .history-item{ border:2px solid #e5e0d3; border-radius:10px; padding:12px 14px; display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+  .history-item.selected{ border-color:var(--color-blue); background:#f2f6ff; }
+  .history-checkbox{ width:18px; height:18px; margin-top:4px; flex-shrink:0; accent-color:var(--color-blue); cursor:pointer; }
+  .history-thumb{ width:72px; height:72px; border-radius:8px; object-fit:cover; flex-shrink:0; background:#f4f1ea; border:1px solid #e5e0d3; }
+  .history-thumb.is-text{ display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--color-blue); }
+  .history-body{ flex:1; min-width:200px; }
+  .history-body .history-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+  .history-body .history-date{ font-size:0.75rem; color:#8a8a8a; }
+  .history-body .history-tema{ font-size:0.85rem; color:#2b2b2b; font-weight:600; }
+  .history-body .history-preview{ font-size:0.8rem; color:#6b6b6b; margin-top:4px; white-space:pre-wrap; }
+  .history-actions{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .history-empty{ color:#8a8a8a; font-size:0.85rem; text-align:center; padding:1.5rem 0; }
+  .history-bulk-bar{ display:flex; align-items:center; gap:10px; margin-bottom:1rem; flex-wrap:wrap; }
+  .history-bulk-bar label{ font-size:0.82rem; color:#6b6b6b; display:flex; align-items:center; gap:6px; cursor:pointer; }
+
+  /* --- login / MFA gate --- */
+  #loginOverlay{
+    position:fixed; inset:0; z-index:9999; background:#f4f1ea;
+    display:flex; align-items:center; justify-content:center; padding:1.5rem;
+  }
+  .login-card{
+    background:#fff; border:2px solid var(--color-blue); border-radius:14px; padding:2rem;
+    box-shadow:-6px 6px 0 rgba(0,78,181,0.12); max-width:420px; width:100%;
+  }
+  .login-card h1{ font-family:var(--font-display); font-size:1.3rem; color:var(--color-blue); margin:0 0 0.4rem; }
+  .login-card p.admin-desc{ margin-bottom:1.2rem; }
+  .login-qr-box{ display:flex; justify-content:center; margin:14px 0; background:#fdfdfb; border:2px dashed #d8d3c4; border-radius:10px; padding:14px; }
+  .login-qr-box svg{ max-width:200px; width:100%; height:auto; }
+  .login-secret{ font-family:monospace; font-size:0.85rem; word-break:break-all; background:#f4f1ea; border-radius:8px; padding:8px 10px; user-select:all; margin-bottom:12px; display:block; }
+  .login-code-input{ letter-spacing:0.3em; text-align:center; font-size:1.1rem; }
+  #histLogPanel .history-empty{ padding:0.5rem 0; }
+  .modal-overlay{
+    position:fixed; inset:0; z-index:9998; background:rgba(20,20,20,0.45);
+    display:flex; align-items:center; justify-content:center; padding:1.5rem;
+  }
+  .modal-overlay[hidden]{ display:none; }
+  .fixed-bottom-btn{ position:fixed; bottom:20px; right:20px; z-index:500; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- LOGIN / MFA GATE -->
+<div id="loginOverlay">
+  <div class="login-card" id="loginCard">
+    <p>Carregando...</p>
+  </div>
+</div>
+
+<!-- CADASTRAR NOVO ACESSO (modal) -->
+<div class="modal-overlay" id="enrollModal" hidden>
+  <div class="login-card" id="enrollCard"></div>
+</div>
+
+<!-- CONFIGURAÇÕES (modal: ver logs de acesso / configurar acesso) -->
+<div class="modal-overlay" id="settingsModal" hidden>
+  <div class="login-card" id="settingsCard" style="max-width:520px;"></div>
+</div>
+
+<div class="admin-wrap" id="adminRoot" style="display:none;">
+
+  <div class="admin-top">
+    <h1>Painel Admin &middot; Sala de Estudo</h1>
+    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <a href="index.html" class="admin-back">&larr; Voltar ao site</a>
+    </div>
+  </div>
+
+  <!-- GERADOR (primeiro) -->
+  <div class="admin-card">
+    <h2>Gerador de conteúdo</h2>
+    <p class="admin-desc">Escolha um tema, o tipo de conteúdo e descreva o assunto do post para gerar com o Gemini.</p>
+
+    <div class="admin-row">
+      <div class="admin-field" style="flex:2;">
+        <label for="genTheme">Tema</label>
+        <select id="genTheme"></select>
+      </div>
+      <div class="admin-field" style="max-width:150px;">
+        <label for="genType">Gerar</label>
+        <select id="genType">
+          <option value="texto">Texto</option>
+          <option value="imagem">Imagem</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-row" style="margin-top:12px;">
+      <div class="admin-field" style="flex:2;">
+        <label for="genTema">Tema / assunto do post</label>
+        <input type="text" id="genTema" placeholder="Ex: importância da rotina de estudos no ENEM">
+      </div>
+      <button class="abtn" id="btnGenerate" type="button">Gerar</button>
+    </div>
+    <div class="admin-status" id="genStatus"></div>
+    <div class="output-box" id="genOutput" style="display:none;"></div>
+    <div class="hint" id="genHint" style="display:none;">
+      <div>Sem créditos ou deu erro na API? Use a seção de <strong>Prompts de emergência</strong> abaixo para copiar o prompt e colar direto no Gemini pelo navegador.</div>
+      <button class="abtn secondary small" id="btnGoToEmergency" type="button" style="margin-top:10px;">Ir para Prompts de emergência</button>
+    </div>
+  </div>
+
+  <!-- TEMAS E SKILLS (dropdown/accordion, fechado por padrão) -->
+  <div class="admin-card">
+    <button class="accordion-toggle" id="skillsToggle" type="button" aria-expanded="false" aria-controls="skillsBody">
+      <h2 style="margin:0;">Temas e Skills</h2>
+      <span class="chev">&#9662;</span>
+    </button>
+    <div class="accordion-body" id="skillsBody">
+      <div class="accordion-body-inner">
+        <p class="admin-desc">Cada tema reúne uma skill de <strong>texto</strong> e uma de <strong>imagem</strong> sempre juntas. Use <code>{tema}</code> no prompt onde o assunto do post deve entrar. Clique no nome de um tema para ver o conteúdo. Você pode criar um tema do zero, a partir de um já existente, ou gerar os prompts com a IA.</p>
+        <label class="edit-mode-toggle">
+          <input type="checkbox" id="themeEditMode">
+          Habilitar edição (mostrar botões Editar/Excluir)
+        </label>
+        <div class="skill-list" id="themeList"></div>
+        <button class="abtn secondary" id="btnNewSkill" type="button">+ Novo tema</button>
+
+        <div class="new-skill-form" id="newSkillForm">
+          <div class="admin-row">
+            <div class="admin-field">
+              <label for="ntNome">Nome do tema</label>
+              <input type="text" id="ntNome" placeholder="Ex: Aulas de reforço para o SSA-2">
+            </div>
+            <div class="admin-field">
+              <label for="ntBase">Basear-se em (opcional)</label>
+              <select id="ntBase"><option value="">— Nenhum, começar do zero —</option></select>
+            </div>
+          </div>
+
+          <div class="admin-field full" style="margin-top:10px;">
+            <label for="ntIaDescricao">Descrição para gerar com IA (opcional)</label>
+            <textarea id="ntIaDescricao" placeholder="Descreva o tema em poucas frases para a IA montar os prompts. Ex: post sobre preparação para o SSA-2, focado em alunos do 2º ano do médio, tom informativo."></textarea>
+            <div class="admin-status" id="ntIaStatus"></div>
+          </div>
+
+          <div class="admin-field full" style="margin-top:10px;">
+            <div class="ia-field-head">
+              <label for="ntTemplateTexto">Skill de TEXTO — prompt (use {tema})</label>
+              <button class="abtn secondary small" id="btnGerarTextoIA" type="button">Gerar com IA</button>
+            </div>
+            <textarea id="ntTemplateTexto" placeholder="Digite ou cole aqui o prompt de texto pronto..." style="min-height:140px;"></textarea>
+          </div>
+
+          <div class="admin-field full" style="margin-top:10px;">
+            <div class="ia-field-head">
+              <label for="ntTemplateImagem">Skill de IMAGEM — prompt (use {tema})</label>
+              <button class="abtn secondary small" id="btnGerarImagemIA" type="button">Gerar com IA</button>
+            </div>
+            <textarea id="ntTemplateImagem" placeholder="Digite ou cole aqui o prompt de imagem pronto..." style="min-height:140px;"></textarea>
+          </div>
+
+          <div class="admin-row" style="margin-top:10px;">
+            <button class="abtn" id="btnSaveSkill" type="button">Salvar tema</button>
+            <button class="abtn ghost" id="btnCancelSkill" type="button">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="admin-card">
+    <h2>Histórico de gerações</h2>
+    <p class="admin-desc">Todo texto e imagem gerados aqui ficam salvos automaticamente neste navegador, do mais recente para o mais antigo. Quando o armazenamento local chegar perto do limite, os itens mais antigos são apagados sozinhos aos poucos para abrir espaço.</p>
+
+    <div class="admin-row" style="margin-bottom:1rem;">
+      <div class="admin-field" style="max-width:180px;">
+        <label for="histTypeFilter">Tipo</label>
+        <select id="histTypeFilter">
+          <option value="todos">Todos</option>
+          <option value="texto">Texto</option>
+          <option value="imagem">Imagem</option>
+        </select>
+      </div>
+      <div class="admin-field" style="max-width:220px;">
+        <label for="histMonthFilter">Mês</label>
+        <select id="histMonthFilter">
+          <option value="todos">Todos os meses</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="history-bulk-bar">
+      <label><input type="checkbox" id="histSelectAll"> Selecionar todos</label>
+      <button class="abtn small ghost" id="btnDeleteSelected" type="button" disabled>Excluir selecionados (<span id="histSelectedCount">0</span>)</button>
+    </div>
+
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- API KEY (dropdown/accordion, fechado por padrão) -->
+  <div class="admin-card">
+    <button class="accordion-toggle" id="keysToggle" type="button" aria-expanded="false" aria-controls="keysBody">
+      <h2 style="margin:0;">API Keys do Gemini</h2>
+      <span class="chev">&#9662;</span>
+    </button>
+    <div class="accordion-body" id="keysBody">
+      <div class="accordion-body-inner">
+        <p class="admin-desc">Ficam salvas só neste navegador (localStorage). Você pode cadastrar várias keys: se a ativa ficar sem créditos, o gerador troca automaticamente para a próxima.</p>
+
+        <div class="admin-field full">
+          <label for="keySelect">Key ativa</label>
+          <select id="keySelect"></select>
+        </div>
+
+        <div class="key-list" id="keyList"></div>
+
+        <div class="add-key-form">
+          <div class="admin-row">
+            <div class="admin-field" style="max-width:180px;">
+              <label for="newKeyLabel">Nome (opcional)</label>
+              <input type="text" id="newKeyLabel" placeholder="Ex: Key principal">
+            </div>
+            <div class="admin-field" style="flex:2; min-width:260px;">
+              <label for="newKeyValue">API Key</label>
+              <input type="password" id="newKeyValue" placeholder="Cole a API key do Gemini aqui">
+            </div>
+            <button class="abtn secondary" id="btnAddKey" type="button">+ Adicionar key</button>
+            <button class="abtn ghost" id="btnShowNewKey" type="button">Mostrar</button>
+          </div>
+          <div class="admin-status" id="keyStatus"></div>
+        </div>
+
+        <div class="admin-row" style="margin-top:1.5rem;">
+          <div class="admin-field">
+            <label for="fModelText">Modelo (texto)</label>
+            <select id="fModelText">
+              <option value="gemini-3.6-pro">gemini-3.6-pro</option>
+              <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+              <option value="gemini-3.6-flash-lite">gemini-3.6-flash-lite</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (descontinuado p/ novos usuários)</option>
+              <option value="gemini-2.5-flash">gemini-2.5-flash (descontinuado p/ novos usuários)</option>
+              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (descontinuado p/ novos usuários)</option>
+              <option value="__custom__">Outro (personalizado)</option>
+            </select>
+            <input type="text" id="fModelTextCustom" placeholder="Nome exato do modelo" style="margin-top:8px; display:none;">
+          </div>
+          <div class="admin-field">
+            <label for="fModelImage">Modelo (imagem)</label>
+            <select id="fModelImage">
+              <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
+              <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation</option>
+              <option value="imagen-4.0-generate-001">imagen-4.0-generate-001</option>
+              <option value="imagen-4.0-ultra-generate-001">imagen-4.0-ultra-generate-001</option>
+              <option value="imagen-3.0-generate-002">imagen-3.0-generate-002</option>
+              <option value="__custom__">Outro (personalizado)</option>
+            </select>
+            <input type="text" id="fModelImageCustom" placeholder="Nome exato do modelo" style="margin-top:8px; display:none;">
+          </div>
+          <button class="abtn" id="btnSaveModels" type="button">Salvar modelos</button>
+        </div>
+        <div class="admin-status" id="modelStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCIA (dentro de um dropdown/accordion) -->
+  <div class="admin-card">
+    <button class="accordion-toggle" id="emergencyToggle" type="button" aria-expanded="false" aria-controls="emergencyBody">
+      <h2 style="margin:0;">Prompts de emergência</h2>
+      <span class="chev">&#9662;</span>
+    </button>
+    <div class="accordion-body" id="emergencyBody">
+      <div class="accordion-body-inner">
+        <p class="admin-desc">Se a API key ficar sem créditos, copie o prompt e cole direto no Gemini no navegador. Use "Inserir da skill" para carregar o prompt de uma das skills salvas (o placeholder <code>{tema}</code> vira <code>[COLOQUE O TEMA AQUI]</code> para você preencher na mão).</p>
+        <div class="admin-row" style="margin-bottom:1rem;">
+          <a class="abtn secondary" href="https://gemini.google.com/" target="_blank" rel="noopener">Abrir Gemini no navegador ↗</a>
+        </div>
+        <div class="grid-2">
+          <div class="admin-field">
+            <label for="emTexto">Prompt de emergência — Texto</label>
+            <div class="admin-row" style="margin-bottom:8px;">
+              <select id="emTextoSkillSelect" style="flex:1; min-width:0;"></select>
+              <button class="abtn secondary small" data-insert-skill="emTexto" data-skill-select="emTextoSkillSelect" type="button">Inserir da skill</button>
+            </div>
+            <textarea id="emTexto" style="min-height:180px;"></textarea>
+            <button class="abtn ghost" style="margin-top:8px;" data-copy="emTexto" type="button">Copiar</button>
+          </div>
+          <div class="admin-field">
+            <label for="emImagem">Prompt de emergência — Imagem</label>
+            <div class="admin-row" style="margin-bottom:8px;">
+              <select id="emImagemSkillSelect" style="flex:1; min-width:0;"></select>
+              <button class="abtn secondary small" data-insert-skill="emImagem" data-skill-select="emImagemSkillSelect" type="button">Inserir da skill</button>
+            </div>
+            <textarea id="emImagem" style="min-height:180px;"></textarea>
+            <button class="abtn ghost" style="margin-top:8px;" data-copy="emImagem" type="button">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ================= SUPABASE CONFIG =================
+const SUPABASE_URL = 'https://fesejrbindspzafiyssm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_mGEU6ouQVdIt1G97ENAq_w_tX8uknCK';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Shared technical account used as the underlying identity for everyone.
+// Not a secret in itself — the real security boundary is each person's TOTP factor.
+const SHARED_EMAIL = 'kupimdigital@gmail.com';
+const SHARED_PASSWORD = 'Supabase91!';
+
+const LS_MODEL_TEXT = 'se_admin_model_text'; // kept for in-memory fallback labels only
+const LS_MODEL_IMAGE = 'se_admin_model_image';
+
+// ================= SESSION PERSISTENCE =================
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+const LS_LOGIN_AT = 'se_admin_login_at';
+const LS_LOGIN_NOME = 'se_admin_login_nome';
+let panelCountdownInterval = null;
+let currentUserNome = null;
+
+// Whether the TOTP login gate is enforced. Off by default (absence of the key = false)
+// so the panel works while TOTP enrollment is broken on Supabase's dashboard.
+const LS_REQUIRE_LOGIN = 'se_admin_require_login';
+function isLoginRequired(){ return localStorage.getItem(LS_REQUIRE_LOGIN) === 'true'; }
+
+const ICON_LOGOUT_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+const ICON_GEAR_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+
+const LS_THEMES = 'se_admin_themes'; // legacy key, read-only, used for one-time migration
+const LS_EMERGENCY_TEXT = 'se_admin_emergency_texto';
+const LS_EMERGENCY_IMAGE = 'se_admin_emergency_imagem';
+
+const DEFAULT_THEMES = [
+  {
+    id: "p01",
+    nome: "Oferta Geral de Reforço Escolar",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Oferta geral de reforço escolar\nObjetivo de comunicação: informar ou vender\nPúblico principal: pais e alunos do fundamental e médio\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Reconheça a dificuldade real do aluno, apresente a proposta de reforço personalizado (todas as matérias, todos os anos) e mencione a modalidade disponível (presencial, online ou domiciliar).\n\nChamada para ação (CTA): agendar uma aula ou conhecer a metodologia pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Oferta geral de reforço escolar\nPúblico principal: pais e alunos do fundamental e médio\n\nDireção visual: foto de aluno estudando ou elemento gráfico neutro, hierarquia clara entre título e CTA, sem texto denso\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p02",
+    nome: "Matrículas e Captação de Vagas",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Matrículas e captação de vagas\nObjetivo de comunicação: vender\nPúblico principal: pais decidindo matrícula\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Anuncie a abertura de matrículas ou turma, destaque o benefício de agir agora sem inventar urgência, cite a série e modalidade atendidas.\n\nChamada para ação (CTA): reservar a vaga pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Matrículas e captação de vagas\nPúblico principal: pais decidindo matrícula\n\nDireção visual: bloco de destaque com a cor de CTA da marca, ícone de calendário se houver prazo real, layout limpo com uma mensagem só\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p03",
+    nome: "Promoções e Condições Comerciais",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Promoções e condições comerciais\nObjetivo de comunicação: vender\nPúblico principal: pais avaliando custo-benefício\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Apresente a condição comercial, para quem ela vale, a validade e como aproveitar — apenas com dados reais e confirmados.\n\nChamada para ação (CTA): falar no WhatsApp para confirmar a condição\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Promoções e condições comerciais\nPúblico principal: pais avaliando custo-benefício\n\nDireção visual: selo de condição especial, destaque tipográfico para o valor/benefício, alto contraste sem poluir a peça\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p04",
+    nome: "Preparação para Provas e Recuperação",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Preparação para provas e recuperação\nObjetivo de comunicação: informar ou vender\nPúblico principal: alunos em período de avaliação e pais\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Reconheça a pressão do momento de provas e ofereça apoio concreto (revisão, tira-dúvidas), citando a disciplina se houver.\n\nChamada para ação (CTA): agendar uma revisão ou tirar dúvidas pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Preparação para provas e recuperação\nPúblico principal: alunos em período de avaliação e pais\n\nDireção visual: elementos de estudo sem clichê exagerado, tom visual sóbrio e acolhedor\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p05",
+    nome: "ENEM, SSA e Vestibulares",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: ENEM, SSA e vestibulares\nObjetivo de comunicação: informar ou vender\nPúblico principal: alunos do médio se preparando para ENEM, SSA ou vestibular\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Contextualize o exame/etapa, explique o que a turma ou aula oferece (disciplinas, formato) e reforce a preparação especializada.\n\nChamada para ação (CTA): garantir vaga na turma ou saber mais pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: ENEM, SSA e vestibulares\nPúblico principal: alunos do médio se preparando para ENEM, SSA ou vestibular\n\nDireção visual: elementos que remetam ao exame sem copiar identidade oficial, tipografia técnica, hierarquia clara\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p06",
+    nome: "Disciplinas e Conteúdos Escolares",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Disciplinas e conteúdos escolares\nObjetivo de comunicação: informar\nPúblico principal: alunos e pais com dificuldade numa matéria específica\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Nomeie dificuldades comuns da disciplina em questão e explique como a Sala de Estudo apoia o aluno nela.\n\nChamada para ação (CTA): agendar aula da disciplina ou mandar dúvida pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Disciplinas e conteúdos escolares\nPúblico principal: alunos e pais com dificuldade numa matéria específica\n\nDireção visual: ícone ou cor associada à disciplina dentro da paleta da marca, imagem de material didático genérico\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p07",
+    nome: "Resultados, Feedbacks e Aprovação",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Resultados, feedbacks e aprovação\nObjetivo de comunicação: provar resultado ou celebrar\nPúblico principal: pais buscando validação antes de matricular\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Conte o caso real (com autorização), a evolução relatada e agradeça a confiança da família, sem inventar números ou nomes.\n\nChamada para ação (CTA): conhecer a Sala de Estudo (CTA suave, não é o foco do post)\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Resultados, feedbacks e aprovação\nPúblico principal: pais buscando validação antes de matricular\n\nDireção visual: formato de citação/aspas, foto real se autorizada ou fundo neutro da marca, tom humano e não comercial\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p08",
+    nome: "Motivação e Coaching do Estudante",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Motivação e coaching do estudante\nObjetivo de comunicação: motivar\nPúblico principal: estudantes de todas as idades\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Crie uma frase motivacional original conectada à rotina de estudos, sem tom comercial forte e sem culpabilizar quem tem dificuldade.\n\nChamada para ação (CTA): nenhum CTA comercial obrigatório\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Motivação e coaching do estudante\nPúblico principal: estudantes de todas as idades\n\nDireção visual: tipografia como protagonista, composição limpa, paleta da marca em tom mais suave\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p09",
+    nome: "Educação e Valorização do Estudo",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Educação e valorização do estudo\nObjetivo de comunicação: informar ou motivar\nPúblico principal: pais e alunos em geral\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Reforce o valor da educação e do conhecimento, conectando com uma dica prática ou reflexão real sobre rotina de estudos.\n\nChamada para ação (CTA): acompanhar a página ou conhecer o trabalho da Sala de Estudo\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Educação e valorização do estudo\nPúblico principal: pais e alunos em geral\n\nDireção visual: visual institucional mais sóbrio, elementos como livro, caderno ou ambiente de estudo\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p10",
+    nome: "Datas Comemorativas e Saudações",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Datas comemorativas e saudações\nObjetivo de comunicação: celebrar ou motivar\nPúblico principal: toda a base de seguidores\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Escreva uma saudação original para a data comemorativa, conectando com o universo escolar, sem repetir frases de anos anteriores.\n\nChamada para ação (CTA): nenhum CTA comercial obrigatório\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Datas comemorativas e saudações\nPúblico principal: toda a base de seguidores\n\nDireção visual: elementos visuais sazonais combinados à identidade da marca, sem clichês genéricos de banco de imagens\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p11",
+    nome: "Equipe, Professores e Cultura Interna",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Equipe, professores e cultura interna\nObjetivo de comunicação: celebrar ou informar\nPúblico principal: comunidade em geral e pais\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Apresente o contexto do profissional ou da equipe (com autorização), destacando uma qualidade real e específica, com tom acolhedor.\n\nChamada para ação (CTA): nenhum CTA comercial obrigatório\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Equipe, professores e cultura interna\nPúblico principal: comunidade em geral e pais\n\nDireção visual: foto real do ambiente/equipe com autorização, tom caloroso e autêntico, evitando estúdio genérico\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p12",
+    nome: "Institucional, Endereço e Contato",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Institucional, endereço e contato\nObjetivo de comunicação: informar ou vender\nPúblico principal: pais e alunos da região da Jaqueira, Recife\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Reforce a localização e facilidade de acesso, convide para conhecer o espaço presencialmente e informe os canais de contato reais.\n\nChamada para ação (CTA): agendar visita ou chamar no WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Institucional, endereço e contato\nPúblico principal: pais e alunos da região da Jaqueira, Recife\n\nDireção visual: foto real do espaço físico quando disponível, ícone de localização, paleta institucional\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p13",
+    nome: "Horários, Feriados e Funcionamento",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Horários, feriados e funcionamento\nObjetivo de comunicação: informar\nPúblico principal: alunos e pais que precisam saber sobre disponibilidade de atendimento\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Anuncie com clareza a mudança de funcionamento, o período exato e o que muda na prática, em tom objetivo e não promocional.\n\nChamada para ação (CTA): falar no WhatsApp em caso de dúvidas sobre o horário\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Horários, feriados e funcionamento\nPúblico principal: alunos e pais que precisam saber sobre disponibilidade de atendimento\n\nDireção visual: layout de aviso/comunicado, ícone de relógio ou calendário, tipografia objetiva e legível\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p14",
+    nome: "Modalidades e Formatos de Aula",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Modalidades e formatos de aula\nObjetivo de comunicação: informar ou vender\nPúblico principal: pais e alunos avaliando o formato de aula ideal\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Explique como funciona a modalidade (presencial, online, domiciliar, individual, em grupo), para quem é mais indicada e o benefício prático.\n\nChamada para ação (CTA): saber mais sobre a modalidade pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Modalidades e formatos de aula\nPúblico principal: pais e alunos avaliando o formato de aula ideal\n\nDireção visual: ícones representando cada modalidade dentro da paleta da marca\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p15",
+    nome: "Orientação Vocacional e Carreira",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Orientação vocacional e carreira\nObjetivo de comunicação: informar ou motivar\nPúblico principal: estudantes do médio em fase de decisão profissional\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Levante a dúvida comum sobre escolha profissional e ofereça uma reflexão ou dica prática, em tom reflexivo, não prescritivo.\n\nChamada para ação (CTA): conversar sobre o assunto com a equipe (CTA leve)\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Orientação vocacional e carreira\nPúblico principal: estudantes do médio em fase de decisão profissional\n\nDireção visual: elementos que remetam a caminhos e decisão de forma sutil, paleta institucional\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p16",
+    nome: "Infância, Alfabetização e Ensino Fundamental I",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Infância, alfabetização e ensino fundamental\nObjetivo de comunicação: informar ou vender\nPúblico principal: pais de crianças em fase de alfabetização ou fundamental I\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Reconheça a importância dessa fase inicial e apresente o suporte oferecido (apoio a tarefas, alfabetização), em tom acolhedor.\n\nChamada para ação (CTA): saber mais pelo WhatsApp\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Infância, alfabetização e ensino fundamental\nPúblico principal: pais de crianças em fase de alfabetização ou fundamental I\n\nDireção visual: cores mais lúdicas dentro da paleta da marca, imagem de criança estudando com autorização ou ilustração amigável\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p17",
+    nome: "Formato: Carrossel Educativo",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Transversal — combine com qualquer pilar estruturável em etapas\nObjetivo de comunicação: informar, motivar ou vender\nPúblico principal: varia conforme o pilar combinado\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Estruture o conteúdo em slides: capa com gancho, um ponto por slide intermediário, e um slide final com síntese e CTA.\n\nChamada para ação (CTA): depende do pilar combinado — salvar, compartilhar, agendar aula ou saber mais\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Transversal — combine com qualquer pilar estruturável em etapas\nPúblico principal: varia conforme o pilar combinado\n\nDireção visual: estrutura visual consistente entre slides, mesma grade e paleta, capa com maior contraste para parar o scroll\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "p18",
+    nome: "Formato: Reel de Engajamento",
+    templateTexto: "Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, direto, educativo e local.\n\nPilar editorial: Transversal — combine com qualquer pilar adaptável a vídeo\nObjetivo de comunicação: motivar, informar ou vender\nPúblico principal: varia conforme o pilar combinado\n\nEscreva a legenda de um post de Instagram sobre: {tema}\n\nEstrutura da legenda: Descreva um roteiro curto de reel: gancho nos 2 primeiros segundos, 2 a 3 cenas de desenvolvimento, texto na tela reforçando pontos-chave e CTA final.\n\nChamada para ação (CTA): depende do pilar combinado — agendar aula, seguir a página, comentar ou compartilhar\n\nRegras:\n- Não inventar preço, data, telefone, horário, vaga ou resultado — use [a confirmar] quando necessário.\n- Não prometer aprovação ou nota garantida.\n- Não copiar frases, slogans ou textos de posts já publicados.\n- 3 a 6 frases curtas, fáceis de ler no celular, linguagem acolhedora e sem jargão pedagógico.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "Marca: Sala de Estudo, reforço escolar em Recife. Paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno e acolhedor.\n\nPilar editorial: Transversal — combine com qualquer pilar adaptável a vídeo\nPúblico principal: varia conforme o pilar combinado\n\nDireção visual: enquadramento vertical, boa iluminação, texto legível mesmo sem áudio, fechamento com logo/contato\n\nTema da imagem: {tema}\n\nRegras:\n- Sem texto embutido na imagem, a menos que o formato seja arte tipográfica com frase curta.\n- Sem clichês genéricos de banco de imagens.\n- Não copiar composições, personagens ou elementos de posts já publicados da conta.",
+    origem: "padrao"
+  },
+  {
+    id: "legado_texto",
+    nome: "Post motivacional (legenda)",
+    templateTexto: "Você é o social media da Sala de Estudo, uma escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, para todas as disciplinas, ENEM e vestibulares). A marca usa azul (#004EB5) e amarelo (#FFD100), tom acolhedor, confiável e motivador, linguagem simples para pais e responsáveis.\n\nEscreva uma legenda de Instagram sobre: {tema}\n\nRegras:\n- 3 a 6 frases curtas, fáceis de ler no celular.\n- Sem jargão pedagógico.\n- Termine com uma chamada para agendar um diagnóstico gratuito.\n- Sugira de 5 a 8 hashtags em português no final.",
+    templateImagem: "",
+    origem: "padrao"
+  },
+  {
+    id: "legado_imagem",
+    nome: "Post educativo (imagem)",
+    templateTexto: "",
+    templateImagem: "Crie uma imagem quadrada para Instagram no estilo da marca Sala de Estudo: paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno, acolhedor, com elementos de estudo (livros, cadernos, lápis, quadro), estilo ilustração flat/vetorial, sem nenhum texto embutido na imagem.\n\nTema da imagem: {tema}",
+    origem: "padrao"
+  }
+];
+
+const DEFAULT_EMERGENCY_TEXT =`Você é o social media da Sala de Estudo, escola de reforço escolar em Recife (aulas presenciais, domiciliares e online, para todas as disciplinas, ENEM e vestibulares). Marca com azul (#004EB5) e amarelo (#FFD100), tom acolhedor, confiável e motivador.
+
+Escreva uma legenda de Instagram sobre: [COLOQUE O TEMA AQUI]
+
+Regras:
+- 3 a 6 frases curtas, fáceis de ler no celular.
+- Sem jargão pedagógico.
+- Termine com uma chamada para agendar um diagnóstico gratuito.
+- Sugira de 5 a 8 hashtags em português no final.`;
+
+const DEFAULT_EMERGENCY_IMAGE = `Crie uma imagem quadrada para Instagram no estilo da marca Sala de Estudo: paleta principal azul #004EB5 e amarelo #FFD100, visual limpo, moderno, acolhedor, com elementos de estudo (livros, cadernos, lápis, quadro), estilo ilustração flat/vetorial, sem nenhum texto embutido na imagem.
+
+Tema da imagem: [COLOQUE O TEMA AQUI]`;
+
+// in-memory settings row cache (single row, id=true)
+let SETTINGS = null;
+
+// ---------- ACCORDIONS (skills, keys, emergência) ----------
+function setupAccordion(toggleId, bodyId){
+  const toggle = document.getElementById(toggleId);
+  const body = document.getElementById(bodyId);
+  const card = toggle.closest('.admin-card');
+  toggle.addEventListener('click', function(){
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    body.classList.toggle('open', !expanded);
+  });
+  if(card){
+    card.addEventListener('click', function(e){
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      if(isOpen) return;
+      if(e.target === toggle || toggle.contains(e.target)) return;
+      toggle.click();
+    });
+  }
+  return {
+    open: function(){
+      toggle.setAttribute('aria-expanded', 'true');
+      body.classList.add('open');
+    }
+  };
+}
+
+// ---------- TEMAS E SKILLS (Supabase) ----------
+let editingThemeId = null;
+let THEMES_CACHE = [];
+
+function mapThemeRow(row){
+  return {
+    id: row.id,
+    nome: row.nome,
+    templateTexto: row.template_texto || '',
+    templateImagem: row.template_imagem || '',
+    origem: row.origem || 'personalizado'
+  };
+}
+
+async function getThemes(){
+  const { data, error } = await sb.from('themes').select('*').order('created_at');
+  if(error){ console.error('Erro ao buscar temas:', error); return []; }
+  THEMES_CACHE = (data || []).map(mapThemeRow);
+  return THEMES_CACHE;
+}
+
+async function seedThemesIfEmpty(){
+  const { count, error } = await sb.from('themes').select('id', { count: 'exact', head: true });
+  if(error){ console.error('Erro ao checar temas existentes:', error); return; }
+  if(count && count > 0) return;
+
+  let source = DEFAULT_THEMES;
+  try{
+    const raw = localStorage.getItem(LS_THEMES);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length) source = parsed;
+    }
+  }catch(e){}
+
+  const rows = source.map(function(t){
+    return {
+      id: t.id,
+      nome: t.nome,
+      template_texto: t.templateTexto || '',
+      template_imagem: t.templateImagem || '',
+      origem: t.origem || 'personalizado'
+    };
+  });
+  const { error: insErr } = await sb.from('themes').insert(rows);
+  if(insErr) console.error('Erro ao semear temas iniciais:', insErr);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+async function renderThemeList(){
+  const list = await getThemes();
+  const el = document.getElementById('themeList');
+  const genSelect = document.getElementById('genTheme');
+  const baseSelect = document.getElementById('ntBase');
+  const prevGenValue = genSelect.value;
+  const prevBaseValue = baseSelect.value;
+  const editMode = document.getElementById('themeEditMode').checked;
+  el.innerHTML = '';
+  el.classList.toggle('edit-mode', editMode);
+  genSelect.innerHTML = '';
+  baseSelect.innerHTML = '<option value="">— Nenhum, começar do zero —</option>';
+
+  list.forEach(function(theme){
+    const item = document.createElement('div');
+    item.className = 'skill-item';
+    const origemTag = theme.origem === 'ia' ? '<span class="theme-origin ia">gerado por ia</span>' : (theme.origem === 'personalizado' ? '<span class="theme-origin">personalizado</span>' : '');
+    const themeToggleId = 'themeToggle_' + theme.id;
+    const themeBodyId = 'themeBody_' + theme.id;
+    item.innerHTML =
+      '<div class="skill-item-head">' +
+        '<button class="theme-toggle" id="' + themeToggleId + '" type="button" aria-expanded="false" aria-controls="' + themeBodyId + '">' +
+          '<span><strong>' + escapeHtml(theme.nome) + '</strong>' + origemTag + '</span>' +
+          '<span class="chev">&#9662;</span>' +
+        '</button>' +
+        '<div class="skill-item-actions">' +
+          '<button data-edit="' + theme.id + '">Editar</button>' +
+          '<button data-del="' + theme.id + '">Excluir</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="theme-body" id="' + themeBodyId + '">' +
+        '<div class="theme-body-inner">' +
+          '<div class="theme-subblock">' +
+            '<div class="subblock-head">' +
+              '<span class="skill-tag texto">texto</span>' +
+              '<div class="prompt-actions">' +
+                '<button type="button" data-copy-prompt="' + theme.id + '" data-prompt-field="templateTexto"' + (theme.templateTexto ? '' : ' disabled') + '>Copiar</button>' +
+                '<button type="button" class="use-prompt" data-use-prompt="' + theme.id + '" data-use-type="texto"' + (theme.templateTexto ? '' : ' disabled') + '>+ Usar</button>' +
+              '</div>' +
+            '</div>' +
+            '<pre>' + (theme.templateTexto ? escapeHtml(theme.templateTexto) : '(sem prompt de texto configurado)') + '</pre>' +
+          '</div>' +
+          '<div class="theme-subblock">' +
+            '<div class="subblock-head">' +
+              '<span class="skill-tag imagem">imagem</span>' +
+              '<div class="prompt-actions">' +
+                '<button type="button" data-copy-prompt="' + theme.id + '" data-prompt-field="templateImagem"' + (theme.templateImagem ? '' : ' disabled') + '>Copiar</button>' +
+                '<button type="button" class="use-prompt" data-use-prompt="' + theme.id + '" data-use-type="imagem"' + (theme.templateImagem ? '' : ' disabled') + '>+ Usar</button>' +
+              '</div>' +
+            '</div>' +
+            '<pre>' + (theme.templateImagem ? escapeHtml(theme.templateImagem) : '(sem prompt de imagem configurado)') + '</pre>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    el.appendChild(item);
+
+    const opt = document.createElement('option');
+    opt.value = theme.id;
+    opt.textContent = theme.nome;
+    genSelect.appendChild(opt);
+
+    const baseOpt = document.createElement('option');
+    baseOpt.value = theme.id;
+    baseOpt.textContent = theme.nome;
+    baseSelect.appendChild(baseOpt);
+  });
+
+  if(prevGenValue && list.some(function(t){ return t.id === prevGenValue; })){
+    genSelect.value = prevGenValue;
+  }
+  if(prevBaseValue && list.some(function(t){ return t.id === prevBaseValue; })){
+    baseSelect.value = prevBaseValue;
+  }
+
+  el.querySelectorAll('.theme-toggle').forEach(function(toggle){
+    const body = document.getElementById(toggle.getAttribute('aria-controls'));
+    toggle.addEventListener('click', function(){
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      body.classList.toggle('open', !expanded);
+    });
+  });
+
+  el.querySelectorAll('[data-del]').forEach(function(btn){
+    btn.addEventListener('click', async function(e){
+      e.stopPropagation();
+      if(!confirm('Excluir este tema (skill de texto e de imagem)?')) return;
+      const id = btn.getAttribute('data-del');
+      const { error } = await sb.from('themes').delete().eq('id', id);
+      if(error){ alert('Erro ao excluir tema: ' + error.message); return; }
+      if(editingThemeId === id) closeThemeForm();
+      await renderThemeList();
+    });
+  });
+
+  el.querySelectorAll('[data-edit]').forEach(function(btn){
+    btn.addEventListener('click', async function(e){
+      e.stopPropagation();
+      const id = btn.getAttribute('data-edit');
+      const theme = (await getThemes()).find(function(t){ return t.id === id; });
+      if(!theme) return;
+      openThemeForm(theme);
+    });
+  });
+
+  el.querySelectorAll('[data-copy-prompt]').forEach(function(btn){
+    btn.addEventListener('click', async function(e){
+      e.stopPropagation();
+      const id = btn.getAttribute('data-copy-prompt');
+      const field = btn.getAttribute('data-prompt-field');
+      const theme = (await getThemes()).find(function(t){ return t.id === id; });
+      if(!theme || !theme[field]) return;
+      copyText(theme[field]);
+      const original = btn.textContent;
+      btn.textContent = 'Copiado!';
+      setTimeout(function(){ btn.textContent = original; }, 1500);
+    });
+  });
+
+  el.querySelectorAll('[data-use-prompt]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      const id = btn.getAttribute('data-use-prompt');
+      const type = btn.getAttribute('data-use-type');
+      useThemeInGenerator(id, type);
+    });
+  });
+
+  await renderEmergencySkillSelects();
+}
+
+function useThemeInGenerator(themeId, type){
+  const genSelect = document.getElementById('genTheme');
+  const genTypeSelect = document.getElementById('genType');
+  genSelect.value = themeId;
+  genTypeSelect.value = type;
+  const genCard = document.getElementById('genTheme').closest('.admin-card');
+  genCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const tema = document.getElementById('genTema');
+  if(tema) tema.focus();
+}
+
+function openThemeForm(theme){
+  editingThemeId = theme ? theme.id : null;
+  document.getElementById('ntNome').value = theme ? theme.nome : '';
+  document.getElementById('ntTemplateTexto').value = theme ? (theme.templateTexto || '') : '';
+  document.getElementById('ntTemplateImagem').value = theme ? (theme.templateImagem || '') : '';
+  document.getElementById('ntIaDescricao').value = '';
+  document.getElementById('ntBase').value = '';
+  document.getElementById('ntIaStatus').textContent = '';
+  document.getElementById('btnSaveSkill').textContent = theme ? 'Salvar alterações' : 'Salvar tema';
+  const form = document.getElementById('newSkillForm');
+  form.classList.add('open');
+  form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeThemeForm(){
+  editingThemeId = null;
+  document.getElementById('newSkillForm').classList.remove('open');
+  document.getElementById('ntNome').value = '';
+  document.getElementById('ntTemplateTexto').value = '';
+  document.getElementById('ntTemplateImagem').value = '';
+  document.getElementById('ntIaDescricao').value = '';
+  document.getElementById('ntBase').value = '';
+  document.getElementById('ntIaStatus').textContent = '';
+  document.getElementById('btnSaveSkill').textContent = 'Salvar tema';
+}
+
+async function renderEmergencySkillSelects(){
+  const list = await getThemes();
+  [['emTextoSkillSelect','templateTexto'], ['emImagemSkillSelect','templateImagem']].forEach(function(pair){
+    const selectEl = document.getElementById(pair[0]);
+    if(!selectEl) return;
+    const filtered = list.filter(function(t){ return t[pair[1]]; });
+    const prev = selectEl.value;
+    selectEl.innerHTML = '';
+    if(!filtered.length){
+      selectEl.innerHTML = '<option value="">Nenhum tema com esse tipo de prompt salvo</option>';
+      selectEl.disabled = true;
+      return;
+    }
+    selectEl.disabled = false;
+    filtered.forEach(function(theme){
+      const opt = document.createElement('option');
+      opt.value = theme.id;
+      opt.textContent = theme.nome;
+      selectEl.appendChild(opt);
+    });
+    if(prev && filtered.some(function(t){ return t.id === prev; })) selectEl.value = prev;
+  });
+}
+
+function setupEmergencySkillInsert(){
+  renderEmergencySkillSelects();
+  document.querySelectorAll('[data-insert-skill]').forEach(function(btn){
+    btn.addEventListener('click', async function(){
+      const targetId = btn.getAttribute('data-insert-skill');
+      const selectId = btn.getAttribute('data-skill-select');
+      const themeId = document.getElementById(selectId).value;
+      const theme = (await getThemes()).find(function(t){ return t.id === themeId; });
+      if(!theme){ return; }
+      const field = targetId === 'emTexto' ? 'templateTexto' : 'templateImagem';
+      const template = theme[field] || '';
+      const textarea = document.getElementById(targetId);
+      const filled = template.replace(/\{tema\}/gi, '[COLOQUE O TEMA AQUI]');
+      textarea.value = filled;
+      const col = targetId === 'emTexto' ? 'emergency_texto' : 'emergency_imagem';
+      await sb.from('settings').update({ [col]: filled }).eq('id', true);
+      const original = btn.textContent;
+      btn.textContent = 'Inserido!';
+      setTimeout(function(){ btn.textContent = original; }, 1500);
+    });
+  });
+}
+
+document.getElementById('btnNewSkill').addEventListener('click', function(){
+  openThemeForm(null);
+});
+document.getElementById('btnCancelSkill').addEventListener('click', function(){
+  closeThemeForm();
+});
+document.getElementById('btnSaveSkill').addEventListener('click', async function(){
+  const nome = document.getElementById('ntNome').value.trim();
+  const templateTexto = document.getElementById('ntTemplateTexto').value.trim();
+  const templateImagem = document.getElementById('ntTemplateImagem').value.trim();
+  if(!nome){ alert('Dê um nome ao tema.'); return; }
+  if(!templateTexto && !templateImagem){ alert('Preencha ao menos o prompt de texto ou o de imagem.'); return; }
+  if(editingThemeId){
+    const { error } = await sb.from('themes').update({
+      nome: nome, template_texto: templateTexto, template_imagem: templateImagem
+    }).eq('id', editingThemeId);
+    if(error){ alert('Erro ao salvar tema: ' + error.message); return; }
+  } else {
+    const { error } = await sb.from('themes').insert({
+      id: 't' + Date.now(), nome: nome, template_texto: templateTexto, template_imagem: templateImagem, origem: 'personalizado'
+    });
+    if(error){ alert('Erro ao criar tema: ' + error.message); return; }
+  }
+  closeThemeForm();
+  await renderThemeList();
+});
+
+document.getElementById('ntBase').addEventListener('change', async function(){
+  const id = this.value;
+  if(!id) return;
+  const base = (await getThemes()).find(function(t){ return t.id === id; });
+  if(!base) return;
+  if(!editingThemeId && !document.getElementById('ntNome').value.trim()){
+    document.getElementById('ntNome').value = base.nome + ' (cópia)';
+  }
+  document.getElementById('ntTemplateTexto').value = base.templateTexto || '';
+  document.getElementById('ntTemplateImagem').value = base.templateImagem || '';
+});
+
+// ---------- GERAÇÃO DE TEMA/SKILL COM IA ----------
+function buildThemeMetaPrompt(kind, description, baseTemplate){
+  const brand = 'Marca: Sala de Estudo, reforço escolar em Recife (aulas presenciais, domiciliares e online, todas as disciplinas, ENEM e SSA). Paleta azul (#004EB5) e amarelo (#FFD100). Tom acolhedor, direto, educativo e local, sem promessas de aprovação ou nota garantida.';
+  const refBlock = baseTemplate ? ('Use como referência de padrão/estrutura este template de outro tema (não copie o conteúdo, apenas o padrão de estrutura):\n"""\n' + baseTemplate + '\n"""\n') : '';
+  if(kind === 'texto'){
+    return 'Você é um especialista em criar templates de prompt reutilizáveis para gerar legendas de Instagram.\n' + brand + '\n\n' +
+      'Crie um TEMPLATE DE PROMPT (não escreva o post em si) para o seguinte tema de post: "' + description + '"\n' + refBlock +
+      '\nO template final deve:\n' +
+      '- Explicar o papel do social media e o contexto da marca.\n' +
+      '- Instruir a escrever a legenda sobre o assunto indicado, usando exatamente o texto literal {tema} no lugar do assunto do post (não substitua {tema} por nada).\n' +
+      '- Trazer regras: não inventar preço, data, telefone, horário, vaga ou resultado; não prometer aprovação ou nota; sugerir de 5 a 8 hashtags em português no final.\n\n' +
+      'Responda apenas com o texto final do template, sem explicações, comentários ou marcações extras — e mantenha {tema} literal no texto.';
+  }
+  return 'Você é um especialista em criar templates de prompt reutilizáveis para gerar imagens de Instagram com IA generativa.\n' + brand + '\n\n' +
+    'Crie um TEMPLATE DE PROMPT DE IMAGEM (não descreva uma imagem específica, crie um molde reutilizável) para o seguinte tema de post: "' + description + '"\n' + refBlock +
+    '\nO template final deve:\n' +
+    '- Descrever a composição, paleta (azul #004EB5 e amarelo #FFD100), estilo visual e elementos, de forma genérica o suficiente para ser reutilizado.\n' +
+    '- Usar exatamente o texto literal {tema} no lugar do assunto específico da imagem (não substitua {tema} por nada).\n' +
+    '- Evitar clichês genéricos de banco de imagens e não copiar composições de posts já publicados.\n\n' +
+    'Responda apenas com o texto final do template, sem explicações, comentários ou marcações extras — e mantenha {tema} literal no texto.';
+}
+
+function setupThemeAIGeneration(kind, buttonId, textareaId){
+  document.getElementById(buttonId).addEventListener('click', async function(){
+    const btn = this;
+    const statusEl = document.getElementById('ntIaStatus');
+    const description = document.getElementById('ntIaDescricao').value.trim();
+    if(!description){
+      statusEl.textContent = 'Descreva o tema desejado no campo acima antes de gerar com IA.';
+      statusEl.className = 'admin-status err';
+      return;
+    }
+    if(!(await getKeys()).length){
+      statusEl.textContent = 'Cadastre sua API key do Gemini primeiro (seção API Keys do Gemini).';
+      statusEl.className = 'admin-status err';
+      return;
+    }
+    const baseId = document.getElementById('ntBase').value;
+    const baseTheme = baseId ? (await getThemes()).find(function(t){ return t.id === baseId; }) : null;
+    const baseTemplate = baseTheme ? (kind === 'texto' ? baseTheme.templateTexto : baseTheme.templateImagem) : '';
+    const metaPrompt = buildThemeMetaPrompt(kind, description, baseTemplate);
+
+    btn.disabled = true;
+    statusEl.textContent = 'Gerando prompt de ' + kind + ' com IA...';
+    statusEl.className = 'admin-status';
+    try{
+      const model = (SETTINGS && SETTINGS.model_text) || 'gemini-3.6-flash';
+      const result = await generateWithFailover('texto', model, metaPrompt, statusEl);
+      document.getElementById(textareaId).value = result.trim();
+      statusEl.textContent = 'Prompt de ' + kind + ' gerado. Revise antes de salvar o tema.';
+      statusEl.className = 'admin-status ok';
+    }catch(err){
+      statusEl.textContent = 'Erro ao gerar com IA: ' + err.message;
+      statusEl.className = 'admin-status err';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+}
+
+// ---------- API KEYS (múltiplas, Supabase) ----------
+let KEYS_CACHE = [];
+
+async function getKeys(){
+  const { data, error } = await sb.from('gemini_api_keys').select('*').order('created_at');
+  if(error){ console.error('Erro ao buscar keys:', error); return []; }
+  KEYS_CACHE = (data || []).map(function(row){
+    return { id: row.id, label: row.label, key: row.api_key };
+  });
+  return KEYS_CACHE;
+}
+
+function getActiveKeyId(){ return (SETTINGS && SETTINGS.active_key_id) || ''; }
+
+async function setActiveKeyId(id){
+  SETTINGS = SETTINGS || {};
+  SETTINGS.active_key_id = id;
+  const { error } = await sb.from('settings').update({ active_key_id: id }).eq('id', true);
+  if(error) console.error('Erro ao definir key ativa:', error);
+}
+
+async function getActiveKeyValue(){
+  const keys = await getKeys();
+  if(!keys.length) return null;
+  let id = getActiveKeyId();
+  let found = keys.find(function(k){ return k.id === id; });
+  if(!found){ found = keys[0]; await setActiveKeyId(found.id); }
+  return found;
+}
+
+function maskKey(k){
+  if(!k || k.length < 8) return '••••••••';
+  return k.slice(0,4) + '••••••••' + k.slice(-4);
+}
+
+async function renderKeys(){
+  const keys = await getKeys();
+  const activeId = getActiveKeyId() || (keys[0] && keys[0].id) || '';
+  if(keys.length && !getActiveKeyId()) await setActiveKeyId(activeId);
+
+  const sel = document.getElementById('keySelect');
+  const listEl = document.getElementById('keyList');
+  sel.innerHTML = '';
+  listEl.innerHTML = '';
+
+  if(!keys.length){
+    sel.innerHTML = '<option value="">Nenhuma key cadastrada</option>';
+    listEl.innerHTML = '<p class="admin-desc" style="margin:0;">Nenhuma API key cadastrada ainda. Adicione uma abaixo.</p>';
+    return;
+  }
+
+  keys.forEach(function(k){
+    const opt = document.createElement('option');
+    opt.value = k.id;
+    opt.textContent = k.label + '  (' + maskKey(k.key) + ')';
+    if(k.id === activeId) opt.selected = true;
+    sel.appendChild(opt);
+
+    const row = document.createElement('div');
+    row.className = 'key-row' + (k.id === activeId ? ' active' : '');
+    row.innerHTML =
+      '<span class="key-label">' + escapeHtml(k.label) + '</span>' +
+      '<span class="key-masked">' + escapeHtml(maskKey(k.key)) + '</span>' +
+      (k.id === activeId ? '<span class="key-active-pill">Ativa</span>' : '') +
+      '<span class="key-actions">' +
+        (k.id !== activeId ? '<button class="abtn small secondary" data-use="' + k.id + '" type="button">Usar esta</button>' : '') +
+        '<button class="abtn small ghost" data-remove-key="' + k.id + '" type="button">Remover</button>' +
+      '</span>';
+    listEl.appendChild(row);
+  });
+
+  listEl.querySelectorAll('[data-use]').forEach(function(btn){
+    btn.addEventListener('click', async function(){
+      await setActiveKeyId(btn.getAttribute('data-use'));
+      await renderKeys();
+    });
+  });
+  listEl.querySelectorAll('[data-remove-key]').forEach(function(btn){
+    btn.addEventListener('click', async function(){
+      const id = btn.getAttribute('data-remove-key');
+      if(!confirm('Remover esta API key?')) return;
+      const { error } = await sb.from('gemini_api_keys').delete().eq('id', id);
+      if(error){ alert('Erro ao remover key: ' + error.message); return; }
+      if(getActiveKeyId() === id){
+        const remaining = await getKeys();
+        await setActiveKeyId(remaining.length ? remaining[0].id : '');
+      }
+      await renderKeys();
+    });
+  });
+}
+
+document.getElementById('keySelect').addEventListener('change', async function(){
+  await setActiveKeyId(this.value);
+  await renderKeys();
+});
+
+document.getElementById('btnShowNewKey').addEventListener('click', function(){
+  const f = document.getElementById('newKeyValue');
+  const showing = f.type === 'text';
+  f.type = showing ? 'password' : 'text';
+  this.textContent = showing ? 'Mostrar' : 'Ocultar';
+});
+
+document.getElementById('btnAddKey').addEventListener('click', async function(){
+  const labelInput = document.getElementById('newKeyLabel');
+  const valueInput = document.getElementById('newKeyValue');
+  const value = valueInput.value.trim();
+  const statusEl = document.getElementById('keyStatus');
+  if(!value){
+    statusEl.textContent = 'Cole uma API key antes de adicionar.';
+    statusEl.className = 'admin-status err';
+    return;
+  }
+  const keys = await getKeys();
+  const label = labelInput.value.trim() || ('Key ' + (keys.length + 1));
+  const newId = 'k' + Date.now();
+  const { error } = await sb.from('gemini_api_keys').insert({ id: newId, label: label, api_key: value, active: true });
+  if(error){
+    statusEl.textContent = 'Erro ao adicionar key: ' + error.message;
+    statusEl.className = 'admin-status err';
+    return;
+  }
+  if(keys.length === 0) await setActiveKeyId(newId);
+  labelInput.value = '';
+  valueInput.value = '';
+  statusEl.textContent = 'Key "' + label + '" adicionada.';
+  statusEl.className = 'admin-status ok';
+  await renderKeys();
+});
+
+// ---------- MODELOS (settings row) ----------
+function setupModelDropdown(selectId, customId, value){
+  const select = document.getElementById(selectId);
+  const custom = document.getElementById(customId);
+  const knownValues = Array.from(select.options).map(function(o){ return o.value; }).filter(function(v){ return v !== '__custom__'; });
+  if(knownValues.indexOf(value) >= 0){
+    select.value = value;
+    custom.style.display = 'none';
+  } else {
+    select.value = '__custom__';
+    custom.style.display = 'block';
+    custom.value = value;
+  }
+  select.addEventListener('change', function(){
+    custom.style.display = (select.value === '__custom__') ? 'block' : 'none';
+  });
+}
+function getModelValue(selectId, customId){
+  const select = document.getElementById(selectId);
+  const custom = document.getElementById(customId);
+  return select.value === '__custom__' ? custom.value.trim() : select.value;
+}
+
+const DEPRECATED_TEXT_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+
+document.getElementById('btnSaveModels').addEventListener('click', async function(){
+  const textModel = getModelValue('fModelText', 'fModelTextCustom') || 'gemini-3.6-flash';
+  const imageModel = getModelValue('fModelImage', 'fModelImageCustom') || 'gemini-2.5-flash-image';
+  const keptLegacy = DEPRECATED_TEXT_MODELS.indexOf(textModel) >= 0;
+  const { error } = await sb.from('settings').update({
+    model_text: textModel, model_image: imageModel, model_text_kept_legacy: keptLegacy
+  }).eq('id', true);
+  const st = document.getElementById('modelStatus');
+  if(error){
+    st.textContent = 'Erro ao salvar modelos: ' + error.message;
+    st.className = 'admin-status err';
+    return;
+  }
+  SETTINGS.model_text = textModel;
+  SETTINGS.model_image = imageModel;
+  SETTINGS.model_text_kept_legacy = keptLegacy;
+  st.textContent = 'Modelos salvos.';
+  st.className = 'admin-status ok';
+});
+
+// ---------- HISTÓRICO (Supabase + Storage) ----------
+let historySelectedIds = new Set();
+let HISTORY_CACHE = [];
+
+async function getAllHistoryItems(){
+  const { data, error } = await sb.from('history').select('*').order('created_at', { ascending: false });
+  if(error){ console.error('Erro ao buscar histórico:', error); return []; }
+  HISTORY_CACHE = data || [];
+  return HISTORY_CACHE;
+}
+
+async function deleteHistoryItem(id){
+  const item = HISTORY_CACHE.find(function(it){ return it.id === id; });
+  if(item && item.type === 'imagem' && item.content){
+    const { error: rmErr } = await sb.storage.from('post-images').remove([item.content]);
+    if(rmErr) console.error('Erro ao remover imagem do storage:', rmErr);
+  }
+  const { error } = await sb.from('history').delete().eq('id', id);
+  if(error) console.error('Erro ao excluir item do histórico:', error);
+}
+
+function historyMonthKey(ts){
+  const d = new Date(ts);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+const HISTORY_MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function historyMonthLabel(monthKey){
+  const parts = monthKey.split('-');
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return HISTORY_MONTH_NAMES[monthIdx] + ' de ' + parts[0];
+}
+
+async function renderMonthFilterOptions(){
+  const select = document.getElementById('histMonthFilter');
+  const items = await getAllHistoryItems();
+  const months = Array.from(new Set(items.map(function(it){ return historyMonthKey(it.created_at); })));
+  months.sort().reverse();
+  const prev = select.value;
+  select.innerHTML = '<option value="todos">Todos os meses</option>';
+  months.forEach(function(m){
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = historyMonthLabel(m);
+    select.appendChild(opt);
+  });
+  if(months.indexOf(prev) >= 0) select.value = prev;
+}
+
+function historyDateLabel(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function updateBulkDeleteBar(visibleIds){
+  const countEl = document.getElementById('histSelectedCount');
+  const btn = document.getElementById('btnDeleteSelected');
+  const selectAll = document.getElementById('histSelectAll');
+  historySelectedIds = new Set(Array.from(historySelectedIds).filter(function(id){ return visibleIds.indexOf(id) >= 0; }));
+  countEl.textContent = String(historySelectedIds.size);
+  btn.disabled = historySelectedIds.size === 0;
+  selectAll.checked = visibleIds.length > 0 && historySelectedIds.size === visibleIds.length;
+  selectAll.indeterminate = historySelectedIds.size > 0 && historySelectedIds.size < visibleIds.length;
+}
+
+async function renderHistory(){
+  const listEl = document.getElementById('historyList');
+  const typeFilter = document.getElementById('histTypeFilter').value;
+  const monthFilter = document.getElementById('histMonthFilter').value;
+
+  let items = await getAllHistoryItems();
+
+  if(typeFilter !== 'todos'){
+    items = items.filter(function(it){ return it.type === typeFilter; });
+  }
+  if(monthFilter !== 'todos'){
+    items = items.filter(function(it){ return historyMonthKey(it.created_at) === monthFilter; });
+  }
+
+  listEl.innerHTML = '';
+  updateBulkDeleteBar(items.map(function(it){ return it.id; }));
+
+  if(!items.length){
+    listEl.innerHTML = '<div class="history-empty">Nenhum conteúdo gerado ainda com esses filtros.</div>';
+    return;
+  }
+
+  for(const it of items){
+    const row = document.createElement('div');
+    row.className = 'history-item' + (historySelectedIds.has(it.id) ? ' selected' : '');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'history-checkbox';
+    checkbox.checked = historySelectedIds.has(it.id);
+    checkbox.addEventListener('change', function(){
+      if(checkbox.checked) historySelectedIds.add(it.id);
+      else historySelectedIds.delete(it.id);
+      row.classList.toggle('selected', checkbox.checked);
+      updateBulkDeleteBar(items.map(function(x){ return x.id; }));
+    });
+    row.appendChild(checkbox);
+
+    let signedUrl = '';
+    if(it.type === 'imagem' && it.content){
+      const { data: signed, error: signErr } = await sb.storage.from('post-images').createSignedUrl(it.content, 3600);
+      if(signErr) console.error('Erro ao gerar URL assinada:', signErr);
+      signedUrl = (signed && signed.signedUrl) || '';
+    }
+
+    const thumb = document.createElement(it.type === 'imagem' ? 'img' : 'div');
+    thumb.className = 'history-thumb' + (it.type === 'texto' ? ' is-text' : '');
+    if(it.type === 'imagem'){
+      thumb.src = signedUrl;
+      thumb.alt = it.tema || 'Imagem gerada';
+    } else {
+      thumb.textContent = 'T';
+    }
+    row.appendChild(thumb);
+
+    const body = document.createElement('div');
+    body.className = 'history-body';
+    body.innerHTML =
+      '<div class="history-top">' +
+        '<span class="skill-tag ' + it.type + '">' + it.type + '</span>' +
+        '<span class="history-date">' + historyDateLabel(it.created_at) + '</span>' +
+        (it.gerado_por ? '<span class="history-date">gerado por ' + escapeHtml(it.gerado_por) + '</span>' : '') +
+      '</div>' +
+      '<div class="history-tema">' + escapeHtml(it.tema || '(sem tema)') + '</div>' +
+      (it.skill_name ? '<div class="history-preview">Skill: ' + escapeHtml(it.skill_name) + '</div>' : '') +
+      (it.type === 'texto' ? '<div class="history-preview">' + escapeHtml((it.content || '').slice(0, 220)) + ((it.content || '').length > 220 ? '…' : '') + '</div>' : '');
+
+    const actions = document.createElement('div');
+    actions.className = 'history-actions';
+
+    if(it.type === 'texto'){
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'abtn small secondary';
+      copyBtn.type = 'button';
+      copyBtn.textContent = 'Copiar';
+      copyBtn.addEventListener('click', function(){ copyText(it.content); });
+      actions.appendChild(copyBtn);
+    } else {
+      const dlBtn = document.createElement('a');
+      dlBtn.className = 'abtn small secondary';
+      dlBtn.textContent = 'Baixar';
+      dlBtn.href = signedUrl;
+      dlBtn.target = '_blank';
+      dlBtn.rel = 'noopener';
+      dlBtn.download = 'post-sala-de-estudo-' + it.id + '.png';
+      actions.appendChild(dlBtn);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'abtn small ghost';
+    delBtn.type = 'button';
+    delBtn.textContent = 'Excluir';
+    delBtn.addEventListener('click', async function(){
+      if(!confirm('Excluir este item do histórico?')) return;
+      historySelectedIds.delete(it.id);
+      await deleteHistoryItem(it.id);
+      await renderMonthFilterOptions();
+      await renderHistory();
+    });
+    actions.appendChild(delBtn);
+
+    body.appendChild(actions);
+    row.appendChild(body);
+    listEl.appendChild(row);
+  }
+}
+
+function dataUrlToBlob(dataUrl){
+  const match = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+  if(!match) throw new Error('Formato de imagem inválido.');
+  const mime = match[1];
+  const b64 = match[2];
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return { blob: new Blob([bytes], { type: mime }), mime: mime };
+}
+
+function extensionFromMime(mime){
+  if(mime.indexOf('png') >= 0) return 'png';
+  if(mime.indexOf('jpeg') >= 0 || mime.indexOf('jpg') >= 0) return 'jpg';
+  if(mime.indexOf('webp') >= 0) return 'webp';
+  return 'png';
+}
+
+async function saveToHistory(type, content, tema, skillName, themeId){
+  const id = 'h' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  let dbContent = content;
+
+  if(type === 'imagem'){
+    const { blob, mime } = dataUrlToBlob(content);
+    const path = id + '.' + extensionFromMime(mime);
+    const { error: upErr } = await sb.storage.from('post-images').upload(path, blob, { contentType: mime });
+    if(upErr){ console.error('Erro ao enviar imagem para o storage:', upErr); throw upErr; }
+    dbContent = path;
+  }
+
+  let geradoPor = currentUserNome;
+  if(!geradoPor){
+    try{ geradoPor = localStorage.getItem(LS_LOGIN_NOME) || 'desconhecido'; }catch(e){ geradoPor = 'desconhecido'; }
+  }
+
+  const { error } = await sb.from('history').insert({
+    id: id, type: type, content: dbContent, tema: tema, skill_name: skillName, theme_id: themeId || null, gerado_por: geradoPor
+  });
+  if(error) console.error('Erro ao salvar no histórico:', error);
+
+  await renderMonthFilterOptions();
+  await renderHistory();
+}
+
+document.getElementById('histTypeFilter').addEventListener('change', renderHistory);
+document.getElementById('histMonthFilter').addEventListener('change', renderHistory);
+
+document.getElementById('histSelectAll').addEventListener('change', async function(){
+  const checked = this.checked;
+  const visibleItems = await getAllHistoryItems();
+  const typeFilter = document.getElementById('histTypeFilter').value;
+  const monthFilter = document.getElementById('histMonthFilter').value;
+  let filtered = visibleItems;
+  if(typeFilter !== 'todos') filtered = filtered.filter(function(it){ return it.type === typeFilter; });
+  if(monthFilter !== 'todos') filtered = filtered.filter(function(it){ return historyMonthKey(it.created_at) === monthFilter; });
+  if(checked){
+    filtered.forEach(function(it){ historySelectedIds.add(it.id); });
+  } else {
+    filtered.forEach(function(it){ historySelectedIds.delete(it.id); });
+  }
+  await renderHistory();
+});
+
+document.getElementById('btnDeleteSelected').addEventListener('click', async function(){
+  if(!historySelectedIds.size) return;
+  if(!confirm('Excluir os ' + historySelectedIds.size + ' itens selecionados do histórico?')) return;
+  const ids = Array.from(historySelectedIds);
+  for(const id of ids){
+    await deleteHistoryItem(id);
+  }
+  historySelectedIds.clear();
+  await renderMonthFilterOptions();
+  await renderHistory();
+});
+
+// ---------- GERAÇÃO (com troca automática de key) ----------
+function isQuotaError(message){
+  const m = (message || '').toLowerCase();
+  return m.indexOf('quota') >= 0 || m.indexOf('resource_exhausted') >= 0 ||
+         m.indexOf('429') >= 0 || m.indexOf('rate limit') >= 0 || m.indexOf('billing') >= 0;
+}
+
+async function callGeminiText(apiKey, model, prompt){
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  const data = await res.json();
+  if(!res.ok){ const err = new Error((data && data.error && data.error.message) || ('Erro HTTP ' + res.status)); err.status = res.status; throw err; }
+  const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
+  const text = parts ? parts.map(function(p){ return p.text || ''; }).join('\n').trim() : '';
+  if(!text) throw new Error('A API não retornou texto.');
+  return text;
+}
+
+async function callGeminiImage(apiKey, model, prompt){
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
+    })
+  });
+  const data = await res.json();
+  if(!res.ok){ const err = new Error((data && data.error && data.error.message) || ('Erro HTTP ' + res.status)); err.status = res.status; throw err; }
+  const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  const imgPart = parts.find(function(p){ return p.inlineData; });
+  if(!imgPart) throw new Error('A API não retornou nenhuma imagem.');
+  return 'data:' + imgPart.inlineData.mimeType + ';base64,' + imgPart.inlineData.data;
+}
+
+async function generateWithFailover(type, model, prompt, statusEl){
+  const keys = await getKeys();
+  if(!keys.length) throw new Error('Cadastre pelo menos uma API key do Gemini primeiro.');
+
+  const activeId = getActiveKeyId() || keys[0].id;
+  const startIndex = Math.max(0, keys.findIndex(function(k){ return k.id === activeId; }));
+  const order = keys.slice(startIndex).concat(keys.slice(0, startIndex));
+
+  let lastError = null;
+  for(let i = 0; i < order.length; i++){
+    const k = order[i];
+    try{
+      if(i > 0 && statusEl) statusEl.textContent = 'Tentando com "' + k.label + '"...';
+      const result = type === 'texto'
+        ? await callGeminiText(k.key, model, prompt)
+        : await callGeminiImage(k.key, model, prompt);
+      if(getActiveKeyId() !== k.id){ await setActiveKeyId(k.id); await renderKeys(); }
+      return result;
+    }catch(err){
+      lastError = err;
+      if(!isQuotaError(err.message)) throw err;
+    }
+  }
+  throw lastError || new Error('Todas as keys cadastradas falharam.');
+}
+
+document.getElementById('btnGenerate').addEventListener('click', async function(){
+  const btn = this;
+  const themeId = document.getElementById('genTheme').value;
+  const genType = document.getElementById('genType').value;
+  const tema = document.getElementById('genTema').value.trim();
+  const statusEl = document.getElementById('genStatus');
+  const outEl = document.getElementById('genOutput');
+  const hintEl = document.getElementById('genHint');
+  const theme = (await getThemes()).find(function(t){ return t.id === themeId; });
+
+  outEl.style.display = 'none';
+  hintEl.style.display = 'none';
+  statusEl.className = 'admin-status';
+  statusEl.textContent = '';
+
+  if(!theme){ statusEl.textContent = 'Selecione um tema.'; statusEl.className = 'admin-status err'; return; }
+  const template = genType === 'texto' ? theme.templateTexto : theme.templateImagem;
+  if(!template){
+    statusEl.textContent = 'Este tema não tem um prompt de ' + genType + ' configurado. Edite o tema em "Temas e Skills".';
+    statusEl.className = 'admin-status err';
+    return;
+  }
+  if(!tema){ statusEl.textContent = 'Descreva o tema do post.'; statusEl.className = 'admin-status err'; return; }
+  if(!(await getKeys()).length){ statusEl.textContent = 'Cadastre sua API key do Gemini primeiro.'; statusEl.className = 'admin-status err'; return; }
+
+  const prompt = template.replace(/\{tema\}/gi, tema);
+
+  btn.disabled = true;
+  statusEl.textContent = 'Gerando...';
+  try{
+    if(genType === 'texto'){
+      const model = (SETTINGS && SETTINGS.model_text) || 'gemini-3.6-flash';
+      const text = await generateWithFailover('texto', model, prompt, statusEl);
+      outEl.style.display = 'block';
+      outEl.innerHTML = '';
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      outEl.appendChild(ta);
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'abtn secondary';
+      copyBtn.type = 'button';
+      copyBtn.style.marginTop = '8px';
+      copyBtn.textContent = 'Copiar texto';
+      copyBtn.addEventListener('click', function(){ copyText(ta.value); });
+      outEl.appendChild(copyBtn);
+      await saveToHistory('texto', text, tema, theme.nome, theme.id);
+    } else {
+      const model = (SETTINGS && SETTINGS.model_image) || 'gemini-2.5-flash-image';
+      const dataUrl = await generateWithFailover('imagem', model, prompt, statusEl);
+      outEl.style.display = 'block';
+      outEl.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      outEl.appendChild(img);
+      const dlBtn = document.createElement('a');
+      dlBtn.className = 'abtn secondary';
+      dlBtn.textContent = 'Baixar imagem';
+      dlBtn.href = dataUrl;
+      dlBtn.download = 'post-sala-de-estudo.png';
+      outEl.appendChild(dlBtn);
+      await saveToHistory('imagem', dataUrl, tema, theme.nome, theme.id);
+    }
+    statusEl.textContent = 'Conteúdo gerado com sucesso.';
+    statusEl.className = 'admin-status ok';
+  }catch(err){
+    statusEl.textContent = 'Erro: ' + err.message;
+    statusEl.className = 'admin-status err';
+    hintEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ---------- EMERGÊNCIA (settings row) ----------
+function loadEmergencyFields(){
+  document.getElementById('emTexto').value = (SETTINGS && SETTINGS.emergency_texto) || DEFAULT_EMERGENCY_TEXT;
+  document.getElementById('emImagem').value = (SETTINGS && SETTINGS.emergency_imagem) || DEFAULT_EMERGENCY_IMAGE;
+}
+document.getElementById('emTexto').addEventListener('input', async function(){
+  SETTINGS.emergency_texto = this.value;
+  await sb.from('settings').update({ emergency_texto: this.value }).eq('id', true);
+});
+document.getElementById('emImagem').addEventListener('input', async function(){
+  SETTINGS.emergency_imagem = this.value;
+  await sb.from('settings').update({ emergency_imagem: this.value }).eq('id', true);
+});
+
+const skillsAccordion = setupAccordion('skillsToggle', 'skillsBody');
+const keysAccordion = setupAccordion('keysToggle', 'keysBody');
+const emergencyAccordion = setupAccordion('emergencyToggle', 'emergencyBody');
+
+function goToEmergencySection(){
+  emergencyAccordion.open();
+  document.getElementById('emergencyToggle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+const btnGoToEmergency = document.getElementById('btnGoToEmergency');
+if(btnGoToEmergency){
+  btnGoToEmergency.addEventListener('click', goToEmergencySection);
+}
+
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+}
+document.querySelectorAll('[data-copy]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const id = btn.getAttribute('data-copy');
+    const val = document.getElementById(id).value;
+    copyText(val);
+    const original = btn.textContent;
+    btn.textContent = 'Copiado!';
+    setTimeout(function(){ btn.textContent = original; }, 1500);
+  });
+});
+
+// ================= AUTH / MFA GATE =================
+
+async function logAccess(nome){
+  try{
+    await sb.from('access_logs').insert({ nome: nome, event: 'login', user_agent: navigator.userAgent });
+  }catch(e){ console.error('Erro ao registrar acesso:', e); }
+}
+
+async function ensureSharedSession(){
+  const { data: sessionData } = await sb.auth.getSession();
+  if(!sessionData || !sessionData.session){
+    const { error } = await sb.auth.signInWithPassword({ email: SHARED_EMAIL, password: SHARED_PASSWORD });
+    if(error) throw error;
+  }
+}
+
+async function getVerifiedFactors(){
+  const { data, error } = await sb.auth.mfa.listFactors();
+  if(error){ console.error('Erro ao listar fatores MFA:', error); return []; }
+  return (data && data.totp || []).filter(function(f){ return f.status === 'verified'; });
+}
+
+function renderLoginLoading(msg){
+  document.getElementById('loginCard').innerHTML = '<p class="admin-desc">' + escapeHtml(msg || 'Carregando...') + '</p>';
+}
+
+function renderFirstEnrollPanel(){
+  const card = document.getElementById('loginCard');
+  card.innerHTML =
+    '<h1>Primeiro acesso</h1>' +
+    '<p class="admin-desc">Cadastre seu autenticador para entrar no painel.</p>' +
+    '<div class="admin-field full">' +
+      '<label for="loginNome">Seu nome</label>' +
+      '<input type="text" id="loginNome" placeholder="Ex: Maria">' +
+    '</div>' +
+    '<button class="abtn" id="btnGerarQr" type="button" style="margin-top:12px; width:100%; justify-content:center;">Gerar QR Code</button>' +
+    '<div id="loginEnrollArea"></div>' +
+    '<div class="admin-status" id="loginStatus"></div>';
+
+  document.getElementById('btnGerarQr').addEventListener('click', async function(){
+    const nome = document.getElementById('loginNome').value.trim();
+    const statusEl = document.getElementById('loginStatus');
+    if(!nome){ statusEl.textContent = 'Digite seu nome.'; statusEl.className = 'admin-status err'; return; }
+    this.disabled = true;
+    statusEl.textContent = 'Gerando QR Code...';
+    statusEl.className = 'admin-status';
+    try{
+      const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: nome });
+      if(error) throw error;
+      const factorId = data.id;
+      const area = document.getElementById('loginEnrollArea');
+      area.innerHTML =
+        '<div class="login-qr-box">' + data.totp.qr_code + '</div>' +
+        '<p class="admin-desc">Não conseguiu escanear? Digite manualmente este código no seu app autenticador:</p>' +
+        '<code class="login-secret">' + escapeHtml(data.totp.secret) + '</code>' +
+        '<div class="admin-field full">' +
+          '<label for="loginCode">Código de 6 dígitos</label>' +
+          '<input type="text" id="loginCode" class="login-code-input" maxlength="6" inputmode="numeric" placeholder="000000">' +
+        '</div>' +
+        '<button class="abtn" id="btnConfirmarEnroll" type="button" style="margin-top:10px; width:100%; justify-content:center;">Confirmar</button>';
+      statusEl.textContent = '';
+      document.getElementById('btnConfirmarEnroll').addEventListener('click', async function(){
+        const code = document.getElementById('loginCode').value.trim();
+        if(!/^\d{6}$/.test(code)){ statusEl.textContent = 'Digite o código de 6 dígitos.'; statusEl.className = 'admin-status err'; return; }
+        this.disabled = true;
+        statusEl.textContent = 'Verificando...';
+        statusEl.className = 'admin-status';
+        try{
+          const { data: chData, error: chErr } = await sb.auth.mfa.challenge({ factorId: factorId });
+          if(chErr) throw chErr;
+          const { error: vErr } = await sb.auth.mfa.verify({ factorId: factorId, challengeId: chData.id, code: code });
+          if(vErr) throw vErr;
+          await onAal2Reached(nome);
+        }catch(err){
+          statusEl.textContent = 'Código inválido, tente novamente.';
+          statusEl.className = 'admin-status err';
+          this.disabled = false;
+        }
+      });
+    }catch(err){
+      statusEl.textContent = 'Erro ao gerar QR Code: ' + err.message;
+      statusEl.className = 'admin-status err';
+      this.disabled = false;
+    }
+  });
+}
+
+function renderFactorPickerPanel(factors){
+  const card = document.getElementById('loginCard');
+  card.innerHTML =
+    '<h1>Entrar no painel</h1>' +
+    '<p class="admin-desc">Digite o código do seu autenticador.</p>' +
+    '<div class="admin-field full">' +
+      '<label for="loginCode2">Código de 6 dígitos</label>' +
+      '<input type="text" id="loginCode2" class="login-code-input" maxlength="6" inputmode="numeric" placeholder="000000">' +
+    '</div>' +
+    '<button class="abtn" id="btnEntrar" type="button" style="margin-top:12px; width:100%; justify-content:center;">Entrar</button>' +
+    '<div class="admin-status" id="loginStatus"></div>';
+
+  document.getElementById('btnEntrar').addEventListener('click', async function(){
+    const code = document.getElementById('loginCode2').value.trim();
+    const statusEl = document.getElementById('loginStatus');
+    if(!/^\d{6}$/.test(code)){ statusEl.textContent = 'Digite o código de 6 dígitos.'; statusEl.className = 'admin-status err'; return; }
+    this.disabled = true;
+    statusEl.textContent = 'Verificando...';
+    statusEl.className = 'admin-status';
+
+    let matchedName = null;
+    for(let i = 0; i < factors.length; i++){
+      const f = factors[i];
+      try{
+        const { data: chData, error: chErr } = await sb.auth.mfa.challenge({ factorId: f.id });
+        if(chErr) continue;
+        const { error: vErr } = await sb.auth.mfa.verify({ factorId: f.id, challengeId: chData.id, code: code });
+        if(vErr) continue;
+        matchedName = f.friendly_name || f.friendlyName || '(sem nome)';
+        break;
+      }catch(e){ /* tenta o próximo fator */ }
+    }
+
+    if(!matchedName){
+      statusEl.textContent = 'Código inválido, tente novamente.';
+      statusEl.className = 'admin-status err';
+      this.disabled = false;
+      return;
+    }
+    renderWelcomeThenEnter(matchedName);
+  });
+}
+
+function renderWelcomeThenEnter(nome){
+  const card = document.getElementById('loginCard');
+  card.innerHTML = '<h1 style="text-align:center;">Bem-vindo(a), ' + escapeHtml(nome) + '!</h1>';
+  setTimeout(async function(){
+    await onAal2Reached(nome);
+  }, 1500);
+}
+
+async function onAal2Reached(nome){
+  currentUserNome = nome;
+  await logAccess(nome);
+  try{
+    localStorage.setItem(LS_LOGIN_AT, String(Date.now()));
+    localStorage.setItem(LS_LOGIN_NOME, nome);
+  }catch(e){ console.error('Erro ao salvar sessão local:', e); }
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('adminRoot').style.display = '';
+  startPanelCountdown();
+  await initAdminApp();
+}
+
+function formatHMS(ms){
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+async function forceLogoutToLoginFlow(){
+  if(panelCountdownInterval){ clearInterval(panelCountdownInterval); panelCountdownInterval = null; }
+  try{ await sb.auth.signOut(); }catch(e){ console.error('Erro no signOut:', e); }
+  try{
+    localStorage.removeItem(LS_LOGIN_AT);
+    localStorage.removeItem(LS_LOGIN_NOME);
+  }catch(e){}
+  document.getElementById('adminRoot').style.display = 'none';
+  hideSessionCountdownWidget();
+  document.getElementById('loginOverlay').style.display = 'flex';
+  await runNormalLoginDecision();
+}
+
+// ---------- top-right widget: settings gear (always, while #adminRoot is visible) +
+// session countdown/logout icon (only while a TOTP session with a TTL is being tracked) ----------
+function ensureTopRightWidget(){
+  let el = document.getElementById('panelTopWidget');
+  if(el) return el;
+  el = document.createElement('div');
+  el.id = 'panelTopWidget';
+  el.style.cssText = 'position:fixed; top:16px; right:16px; z-index:50; display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--color-blue); border-radius:10px; padding:6px 10px; box-shadow:-4px 4px 0 rgba(0,78,181,0.12);';
+  el.innerHTML =
+    '<span id="panelSessionCountdown" style="font-family:monospace; font-weight:700; color:var(--color-blue); font-size:0.85rem; display:none;"></span>' +
+    '<button class="abtn small" id="btnPanelLogout" type="button" title="Sair" style="display:none; padding:6px 8px;">' + ICON_LOGOUT_SVG + '</button>' +
+    '<button class="abtn small" id="btnPanelSettings" type="button" title="Configurações" style="padding:6px 8px;">' + ICON_GEAR_SVG + '</button>';
+  document.body.appendChild(el);
+  document.getElementById('btnPanelLogout').addEventListener('click', function(){
+    forceLogoutToLoginFlow();
+  });
+  document.getElementById('btnPanelSettings').addEventListener('click', function(){
+    renderSettingsHome();
+    document.getElementById('settingsModal').hidden = false;
+  });
+  return el;
+}
+
+function hideSessionCountdownWidget(){
+  const countdownEl = document.getElementById('panelSessionCountdown');
+  const logoutBtn = document.getElementById('btnPanelLogout');
+  if(countdownEl) countdownEl.style.display = 'none';
+  if(logoutBtn) logoutBtn.style.display = 'none';
+}
+
+function startPanelCountdown(){
+  if(panelCountdownInterval){ clearInterval(panelCountdownInterval); panelCountdownInterval = null; }
+  ensureTopRightWidget();
+  document.getElementById('panelSessionCountdown').style.display = '';
+  document.getElementById('btnPanelLogout').style.display = '';
+  const loginAt = Number(localStorage.getItem(LS_LOGIN_AT)) || Date.now();
+  function tick(){
+    const remaining = SESSION_TTL_MS - (Date.now() - loginAt);
+    const countdownEl = document.getElementById('panelSessionCountdown');
+    if(remaining <= 0){
+      if(countdownEl) countdownEl.textContent = formatHMS(0);
+      clearInterval(panelCountdownInterval);
+      panelCountdownInterval = null;
+      forceLogoutToLoginFlow();
+      return;
+    }
+    if(countdownEl) countdownEl.textContent = formatHMS(remaining);
+  }
+  tick();
+  panelCountdownInterval = setInterval(tick, 1000);
+}
+
+// ---------- "bem-vindo de volta" resume gate (shown in loginOverlay, before entering the panel) ----------
+function renderResumeGatePanel(remainingMs, nome){
+  const card = document.getElementById('loginCard');
+  let gateInterval = null;
+  card.innerHTML =
+    '<h1>Bem-vindo de volta' + (nome ? ', ' + escapeHtml(nome) : '') + '</h1>' +
+    '<p class="admin-desc">Sua sessão anterior ainda está ativa. Você pode continuar sem digitar o código novamente, ou sair.</p>' +
+    '<div style="text-align:center; font-family:monospace; font-size:1.4rem; font-weight:700; color:var(--color-blue); margin:14px 0;" id="resumeGateCountdown"></div>' +
+    '<div class="admin-row" style="justify-content:center;">' +
+      '<button class="abtn" id="btnResumeLogin" type="button" style="flex:1; justify-content:center;">Login</button>' +
+      '<button class="abtn ghost" id="btnResumeLogout" type="button" style="flex:1; justify-content:center;">Logout</button>' +
+    '</div>';
+
+  function tick(){
+    const remaining = SESSION_TTL_MS - (Date.now() - (Number(localStorage.getItem(LS_LOGIN_AT)) || Date.now()));
+    const el = document.getElementById('resumeGateCountdown');
+    if(remaining <= 0){
+      if(gateInterval){ clearInterval(gateInterval); gateInterval = null; }
+      if(el) el.textContent = formatHMS(0);
+      runNormalLoginDecision();
+      return;
+    }
+    if(el) el.textContent = formatHMS(remaining);
+  }
+  tick();
+  gateInterval = setInterval(tick, 1000);
+
+  document.getElementById('btnResumeLogin').addEventListener('click', async function(){
+    if(gateInterval){ clearInterval(gateInterval); gateInterval = null; }
+    const usedNome = nome || 'desconhecido';
+    currentUserNome = usedNome;
+    try{
+      await sb.from('access_logs').insert({ nome: usedNome, event: 'resume', user_agent: navigator.userAgent });
+    }catch(e){ console.error('Erro ao registrar acesso (resume):', e); }
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('adminRoot').style.display = '';
+    startPanelCountdown();
+    await initAdminApp();
+  });
+
+  document.getElementById('btnResumeLogout').addEventListener('click', async function(){
+    if(gateInterval){ clearInterval(gateInterval); gateInterval = null; }
+    try{ await sb.auth.signOut(); }catch(e){ console.error('Erro no signOut:', e); }
+    try{
+      localStorage.removeItem(LS_LOGIN_AT);
+      localStorage.removeItem(LS_LOGIN_NOME);
+    }catch(e){}
+    await runNormalLoginDecision();
+  });
+}
+
+// existing (pre-resume) decision logic: list factors → first-enrollment or name+code screen.
+async function runNormalLoginDecision(){
+  renderLoginLoading('Verificando sessão...');
+  await ensureSharedSession();
+  const factors = await getVerifiedFactors();
+  if(!factors.length){
+    renderFirstEnrollPanel();
+  } else {
+    renderFactorPickerPanel(factors);
+  }
+}
+
+async function enterAdminWithoutLogin(){
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('adminRoot').style.display = '';
+  ensureTopRightWidget();
+  hideSessionCountdownWidget();
+  await initAdminApp();
+}
+
+async function runLoginFlow(){
+  renderLoginLoading('Verificando sessão...');
+  await ensureSharedSession();
+
+  if(!isLoginRequired()){
+    await enterAdminWithoutLogin();
+    return;
+  }
+
+  const { data: sessionData } = await sb.auth.getSession();
+  const { data: aalData } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  let loginAt = 0;
+  try{ loginAt = Number(localStorage.getItem(LS_LOGIN_AT)) || 0; }catch(e){}
+  const hasValidSession = !!(sessionData && sessionData.session);
+  const isAal2 = !!(aalData && aalData.currentLevel === 'aal2');
+  const withinTtl = loginAt > 0 && (Date.now() - loginAt) < SESSION_TTL_MS;
+
+  if(hasValidSession && isAal2 && withinTtl){
+    let nome = '';
+    try{ nome = localStorage.getItem(LS_LOGIN_NOME) || ''; }catch(e){}
+    renderResumeGatePanel(SESSION_TTL_MS - (Date.now() - loginAt), nome);
+    return;
+  }
+
+  // no resumable session: if a stale/expired session exists, clean it up first.
+  if(hasValidSession && (!isAal2 || !withinTtl)){
+    try{ await sb.auth.signOut(); }catch(e){ console.error('Erro no signOut de sessão expirada:', e); }
+    try{
+      localStorage.removeItem(LS_LOGIN_AT);
+      localStorage.removeItem(LS_LOGIN_NOME);
+    }catch(e){}
+  }
+  await runNormalLoginDecision();
+}
+
+// ---------- Cadastrar novo acesso (modal, aberto a partir de Configurações) ----------
+function setupEnrollModal(){
+  const overlay = document.getElementById('enrollModal');
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) overlay.hidden = true;
+  });
+}
+
+function openEnrollModal(){
+  renderEnrollModalContent();
+  document.getElementById('enrollModal').hidden = false;
+}
+
+function renderEnrollModalContent(){
+  const card = document.getElementById('enrollCard');
+  card.innerHTML =
+    '<div class="admin-top" style="margin-bottom:1rem;">' +
+      '<h1 style="margin:0;">Cadastrar novo acesso</h1>' +
+      '<button class="abtn ghost small" id="btnCloseEnroll" type="button">Fechar</button>' +
+    '</div>' +
+    '<div class="admin-field full">' +
+      '<label for="enrollNome">Nome da pessoa</label>' +
+      '<input type="text" id="enrollNome" placeholder="Ex: João">' +
+    '</div>' +
+    '<button class="abtn" id="btnEnrollGerarQr" type="button" style="margin-top:12px; width:100%; justify-content:center;">Gerar QR Code</button>' +
+    '<div id="enrollArea"></div>' +
+    '<div class="admin-status" id="enrollStatus"></div>';
+
+  document.getElementById('btnCloseEnroll').addEventListener('click', function(){
+    document.getElementById('enrollModal').hidden = true;
+  });
+
+  document.getElementById('btnEnrollGerarQr').addEventListener('click', async function(){
+    const nome = document.getElementById('enrollNome').value.trim();
+    const statusEl = document.getElementById('enrollStatus');
+    if(!nome){ statusEl.textContent = 'Digite o nome da pessoa.'; statusEl.className = 'admin-status err'; return; }
+    this.disabled = true;
+    statusEl.textContent = 'Gerando QR Code...';
+    statusEl.className = 'admin-status';
+    try{
+      const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: nome });
+      if(error) throw error;
+      const factorId = data.id;
+      const area = document.getElementById('enrollArea');
+      area.innerHTML =
+        '<div class="login-qr-box">' + data.totp.qr_code + '</div>' +
+        '<p class="admin-desc">Não conseguiu escanear? Digite manualmente este código no app autenticador:</p>' +
+        '<code class="login-secret">' + escapeHtml(data.totp.secret) + '</code>' +
+        '<div class="admin-field full">' +
+          '<label for="enrollCode">Código de 6 dígitos</label>' +
+          '<input type="text" id="enrollCode" class="login-code-input" maxlength="6" inputmode="numeric" placeholder="000000">' +
+        '</div>' +
+        '<button class="abtn" id="btnEnrollConfirmar" type="button" style="margin-top:10px; width:100%; justify-content:center;">Confirmar</button>';
+      statusEl.textContent = '';
+      document.getElementById('btnEnrollConfirmar').addEventListener('click', async function(){
+        const code = document.getElementById('enrollCode').value.trim();
+        if(!/^\d{6}$/.test(code)){ statusEl.textContent = 'Digite o código de 6 dígitos.'; statusEl.className = 'admin-status err'; return; }
+        this.disabled = true;
+        statusEl.textContent = 'Verificando...';
+        statusEl.className = 'admin-status';
+        try{
+          const { data: chData, error: chErr } = await sb.auth.mfa.challenge({ factorId: factorId });
+          if(chErr) throw chErr;
+          const { error: vErr } = await sb.auth.mfa.verify({ factorId: factorId, challengeId: chData.id, code: code });
+          if(vErr) throw vErr;
+          statusEl.textContent = 'Autenticador cadastrado para ' + nome + '!';
+          statusEl.className = 'admin-status ok';
+          setTimeout(function(){ document.getElementById('enrollModal').hidden = true; }, 1500);
+        }catch(err){
+          statusEl.textContent = 'Código inválido, tente novamente.';
+          statusEl.className = 'admin-status err';
+          this.disabled = false;
+        }
+      });
+    }catch(err){
+      statusEl.textContent = 'Erro ao gerar QR Code: ' + err.message;
+      statusEl.className = 'admin-status err';
+      this.disabled = false;
+    }
+  });
+}
+
+// ---------- Configurações (modal com "Ver logs de acesso" / "Configurar acesso") ----------
+function setupSettingsModal(){
+  const overlay = document.getElementById('settingsModal');
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) overlay.hidden = true;
+  });
+}
+
+function renderSettingsHome(){
+  const card = document.getElementById('settingsCard');
+  card.innerHTML =
+    '<div class="admin-top" style="margin-bottom:1rem;">' +
+      '<h1 style="margin:0;">Configurações</h1>' +
+      '<button class="abtn ghost small" id="btnCloseSettings" type="button">Fechar</button>' +
+    '</div>' +
+    '<div class="admin-row" style="margin-bottom:1rem;">' +
+      '<button class="abtn secondary" id="btnSettingsAccessLog" type="button" style="flex:1; justify-content:center;">Ver logs de acesso</button>' +
+      '<button class="abtn secondary" id="btnSettingsConfigAccess" type="button" style="flex:1; justify-content:center;">Configurar acesso</button>' +
+    '</div>' +
+    '<div id="settingsBody"></div>';
+
+  document.getElementById('btnCloseSettings').addEventListener('click', function(){
+    document.getElementById('settingsModal').hidden = true;
+  });
+  document.getElementById('btnSettingsAccessLog').addEventListener('click', renderSettingsAccessLogView);
+  document.getElementById('btnSettingsConfigAccess').addEventListener('click', renderSettingsConfigAccessView);
+}
+
+function renderSettingsAccessLogView(){
+  const body = document.getElementById('settingsBody');
+  body.innerHTML =
+    '<button class="abtn ghost small" id="btnSettingsBackFromLog" type="button" style="margin-bottom:12px;">&larr; Voltar</button>' +
+    '<div class="history-list" id="settingsAccessLogList" style="max-height:50vh; overflow-y:auto;"></div>';
+  document.getElementById('btnSettingsBackFromLog').addEventListener('click', renderSettingsHome);
+  renderAccessLog('settingsAccessLogList');
+}
+
+async function renderAccessLog(containerId){
+  const listEl = document.getElementById(containerId);
+  if(!listEl) return;
+  listEl.innerHTML = '<div class="history-empty">Carregando...</div>';
+  const { data, error } = await sb.from('access_logs').select('*').order('created_at', { ascending: false }).limit(200);
+  if(error){
+    listEl.innerHTML = '<div class="history-empty">Erro ao carregar histórico de acessos.</div>';
+    return;
+  }
+  if(!data || !data.length){
+    listEl.innerHTML = '<div class="history-empty">Nenhum acesso registrado ainda.</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  data.forEach(function(row){
+    const d = new Date(row.created_at);
+    const label = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML =
+      '<div class="history-body">' +
+        '<div class="history-tema">' + escapeHtml(row.nome || '(sem nome)') + '</div>' +
+        '<div class="history-preview">' + escapeHtml(label) + '</div>' +
+      '</div>';
+    listEl.appendChild(item);
+  });
+}
+
+function renderSettingsConfigAccessView(){
+  const body = document.getElementById('settingsBody');
+  const required = isLoginRequired();
+  body.innerHTML =
+    '<button class="abtn ghost small" id="btnSettingsBackFromConfig" type="button" style="margin-bottom:12px;">&larr; Voltar</button>' +
+    '<label class="edit-mode-toggle">' +
+      '<input type="checkbox" id="requireLoginToggle"' + (required ? ' checked' : '') + '>' +
+      'Solicitar login' +
+    '</label>' +
+    '<div class="admin-status" id="requireLoginStatus"></div>' +
+    '<div id="requireLoginEnrollArea"></div>' +
+    '<hr style="border:none; border-top:2px dashed #e5e0d3; margin:16px 0;">' +
+    '<button class="abtn secondary" id="btnSettingsOpenEnroll" type="button">+ Cadastrar novo acesso</button>';
+
+  document.getElementById('btnSettingsBackFromConfig').addEventListener('click', renderSettingsHome);
+  document.getElementById('btnSettingsOpenEnroll').addEventListener('click', function(){
+    openEnrollModal();
+  });
+
+  const toggle = document.getElementById('requireLoginToggle');
+  const statusEl = document.getElementById('requireLoginStatus');
+  const enrollArea = document.getElementById('requireLoginEnrollArea');
+
+  toggle.addEventListener('change', function(){
+    if(toggle.checked){
+      statusEl.textContent = '';
+      statusEl.className = 'admin-status';
+      renderInlineEnrollForToggle(enrollArea, toggle, statusEl);
+    } else {
+      try{ localStorage.setItem(LS_REQUIRE_LOGIN, 'false'); }catch(e){}
+      enrollArea.innerHTML = '';
+      statusEl.textContent = 'Login não será mais solicitado.';
+      statusEl.className = 'admin-status ok';
+    }
+  });
+}
+
+// Reuses the same enroll (QR + confirm) flow used elsewhere, but inline inside the
+// "Configurar acesso" view, and only flips LS_REQUIRE_LOGIN to 'true' on success.
+function renderInlineEnrollForToggle(container, toggleCheckbox, outerStatusEl){
+  container.innerHTML =
+    '<div class="admin-card" style="margin-top:12px; box-shadow:none;">' +
+      '<h2 style="font-size:1rem;">Cadastre seu autenticador antes de ativar</h2>' +
+      '<div class="admin-field full">' +
+        '<label for="reqLoginNome">Seu nome</label>' +
+        '<input type="text" id="reqLoginNome" placeholder="Ex: Maria">' +
+      '</div>' +
+      '<div class="admin-row" style="margin-top:10px;">' +
+        '<button class="abtn" id="btnReqLoginQr" type="button">Gerar QR Code</button>' +
+        '<button class="abtn ghost" id="btnReqLoginCancel" type="button">Cancelar</button>' +
+      '</div>' +
+      '<div id="reqLoginEnrollArea"></div>' +
+      '<div class="admin-status" id="reqLoginStatus"></div>' +
+    '</div>';
+
+  document.getElementById('btnReqLoginCancel').addEventListener('click', function(){
+    toggleCheckbox.checked = false;
+    container.innerHTML = '';
+  });
+
+  document.getElementById('btnReqLoginQr').addEventListener('click', async function(){
+    const nome = document.getElementById('reqLoginNome').value.trim();
+    const statusEl = document.getElementById('reqLoginStatus');
+    if(!nome){ statusEl.textContent = 'Digite seu nome.'; statusEl.className = 'admin-status err'; return; }
+    this.disabled = true;
+    statusEl.textContent = 'Gerando QR Code...';
+    statusEl.className = 'admin-status';
+    try{
+      const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: nome });
+      if(error) throw error;
+      const factorId = data.id;
+      const area = document.getElementById('reqLoginEnrollArea');
+      area.innerHTML =
+        '<div class="login-qr-box">' + data.totp.qr_code + '</div>' +
+        '<p class="admin-desc">Não conseguiu escanear? Digite manualmente este código no seu app autenticador:</p>' +
+        '<code class="login-secret">' + escapeHtml(data.totp.secret) + '</code>' +
+        '<div class="admin-field full">' +
+          '<label for="reqLoginCode">Código de 6 dígitos</label>' +
+          '<input type="text" id="reqLoginCode" class="login-code-input" maxlength="6" inputmode="numeric" placeholder="000000">' +
+        '</div>' +
+        '<button class="abtn" id="btnReqLoginConfirmar" type="button" style="margin-top:10px; width:100%; justify-content:center;">Confirmar</button>';
+      statusEl.textContent = '';
+      document.getElementById('btnReqLoginConfirmar').addEventListener('click', async function(){
+        const code = document.getElementById('reqLoginCode').value.trim();
+        if(!/^\d{6}$/.test(code)){ statusEl.textContent = 'Digite o código de 6 dígitos.'; statusEl.className = 'admin-status err'; return; }
+        this.disabled = true;
+        statusEl.textContent = 'Verificando...';
+        statusEl.className = 'admin-status';
+        try{
+          const { data: chData, error: chErr } = await sb.auth.mfa.challenge({ factorId: factorId });
+          if(chErr) throw chErr;
+          const { error: vErr } = await sb.auth.mfa.verify({ factorId: factorId, challengeId: chData.id, code: code });
+          if(vErr) throw vErr;
+          try{ localStorage.setItem(LS_REQUIRE_LOGIN, 'true'); }catch(e){}
+          container.innerHTML = '<div class="admin-status ok">Login será solicitado a partir de agora.</div>';
+        }catch(err){
+          statusEl.textContent = 'Código inválido, tente novamente.';
+          statusEl.className = 'admin-status err';
+          this.disabled = false;
+        }
+      });
+    }catch(err){
+      statusEl.textContent = 'Erro ao gerar QR Code: ' + err.message;
+      statusEl.className = 'admin-status err';
+      this.disabled = false;
+    }
+  });
+}
+
+// ---------- init do painel (após aal2) ----------
+async function initAdminApp(){
+  await seedThemesIfEmpty();
+
+  const { data: settingsRow, error: settingsErr } = await sb.from('settings').select('*').eq('id', true).maybeSingle();
+  if(settingsErr) console.error('Erro ao buscar settings:', settingsErr);
+  SETTINGS = settingsRow || {};
+
+  await renderThemeList();
+  document.getElementById('themeEditMode').addEventListener('change', renderThemeList);
+  await renderKeys();
+  setupModelDropdown('fModelText', 'fModelTextCustom', SETTINGS.model_text || 'gemini-3.6-flash');
+  setupModelDropdown('fModelImage', 'fModelImageCustom', SETTINGS.model_image || 'gemini-2.5-flash-image');
+  loadEmergencyFields();
+  setupEmergencySkillInsert();
+  setupThemeAIGeneration('texto', 'btnGerarTextoIA', 'ntTemplateTexto');
+  setupThemeAIGeneration('imagem', 'btnGerarImagemIA', 'ntTemplateImagem');
+  await renderMonthFilterOptions();
+  await renderHistory();
+}
+
+setupEnrollModal();
+setupSettingsModal();
+runLoginFlow();
+</script>
+</body>
+</html>

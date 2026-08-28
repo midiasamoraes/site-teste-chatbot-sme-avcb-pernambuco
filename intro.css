@@ -1,0 +1,156 @@
+:root{
+    --marker-red: var(--color-blue, #004EB5);
+    --board-bg:#fdfdfb;
+    --logo-bg:#1c1c1c;
+    --logo-fg:#fdfdfb;
+    --dur-write:2.4s;   /* recalculado via JS a partir do comprimento real dos traços */
+    --dur-hold:0.11s;
+    --dur-erase:1.3s;
+    --dur-text-fade:0.25s; /* texto desaparece RÁPIDO assim que a seta chega nele */
+    --dur-logo:2.75s;      /* seta demora mais para atravessar/desaparecer da tela (+10%) */
+  }
+  *{box-sizing:border-box;}
+
+  .site{
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#f4f1ea,#e9e3d6);
+    text-align:center;padding:2rem;
+  }
+  .site h1{font-size:2.2rem;color:#2b2b2b;margin-bottom:.5rem;}
+  .site p{color:#6b6b6b;max-width:32rem;}
+
+  #intro{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;
+    visibility:visible;
+    cursor:pointer;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  #intro *{
+    -webkit-user-drag:none;
+    user-drag:none;
+  }
+  #intro.skip-intro {
+    display: none !important;
+  }
+  .intro-bg {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-bg-base);
+    background-image: 
+        linear-gradient(var(--color-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    clip-path: polygon(var(--wipe-x, -100vw) 0, 100vw 0, 100vw 100vh, var(--wipe-x, -100vw) 100vh);
+  }
+  #intro.ready{
+    visibility:visible;
+    animation: hideIntro 0.01s linear forwards;
+    animation-delay: calc(var(--dur-write) + var(--dur-hold) + var(--dur-logo));
+  }
+  @keyframes hideIntro{ to{ visibility: hidden; pointer-events:none; } }
+
+  .stage{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    perspective: 1300px;
+    perspective-origin: 8% 50%; /* "câmera" bem à esquerda do quadro */
+  }
+
+  .board-plane{
+    position:relative;
+    transform-style: preserve-3d;
+    transform: rotateY(-38deg) rotateX(7deg); /* três quartos, vindo da esquerda */
+  }
+
+  .text-wrap{
+    position:relative;
+    display:inline-block;
+    line-height:0;
+  }
+
+  /*
+    O texto some rápido (--dur-text-fade) e só é disparado quando a seta
+    realmente alcança o texto na tela — isso é controlado via JS
+    (função watchArrowOverText), que adiciona a classe .erase no momento certo.
+    Por isso não há mais animation-delay fixo aqui.
+  */
+  #intro.ready .text-wrap{
+    clip-path: inset(0 0 0 0);
+  }
+  .text-wrap.erase{
+    animation: eraseText var(--dur-text-fade) ease-in forwards;
+  }
+  @keyframes eraseText{ to{ clip-path: inset(0 0 0 100%); opacity:0; } }
+
+  #handwriting-svg{
+    display:block;
+    width:min(88vw, 760px);
+    height:auto;
+    overflow:visible;
+  }
+  .glyph-stroke{
+    fill:none;
+    stroke:var(--marker-red);
+    transition: fill 220ms ease;
+  }
+
+  .hand-erase{
+    position:absolute;
+    top:46%;left:-6%;
+    width:68px;height:68px;
+    transform:translate(-50%,-50%);
+    opacity:0;
+  }
+  /* .hand-erase não é mais acionada: quem "apaga" o texto agora é a
+     seta amarela passando por cima dele, então a mãozinha apagadora
+     fica desativada (permanece invisível, opacity:0 do estado base)
+     para não duplicar/confundir com o efeito da seta. */
+  @keyframes fadeInHand{ to{ opacity:1; } }
+  @keyframes moveHandErase{ to{ left:104%; } }
+
+  /*
+    A seta original tem proporção ~5,75:1 (muito larga e baixa).
+    Antes, "object-fit:cover" forçava a imagem a preencher width:100%/height:100%
+    do viewport, ampliando-a de forma desproporcional e cortando as laterais —
+    é exatamente aí que a ponta da seta (que fica nas extremidades do desenho)
+    saía da área visível, sobrando só o corpo retangular (a "faixa amarela").
+
+    A correção: em vez de forçar a imagem a preencher uma caixa de 100%x100%
+    (e cortar o que não couber), deixamos a imagem definir sua própria caixa
+    a partir da proporção real do SVG (height:100vh + width:auto). Assim a
+    seta nunca é cortada nem distorcida — ela apenas fica larga (o que é
+    esperado, já que sua proporção real É larga) e desliza inteira pela tela.
+  */
+  .logo-sweep{
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;   /* ocupa toda a altura da tela, sem recorte */
+    width:auto;     /* largura calculada automaticamente a partir do viewBox do SVG (mantém 5,75:1) */
+    display:block;
+    transform:translateX(-100%);
+    /* Evita que um clique/arraste sobre a imagem dispare o "fantasma" nativo
+       de drag do navegador (o que fazia a seta sumir ao clicar na tela) */
+    pointer-events:none;
+    -webkit-user-drag:none;
+    user-drag:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #intro.ready .logo-sweep{
+    animation: sweepLogo var(--dur-logo) cubic-bezier(.4,0,.2,1) forwards;
+    /* começa junto com o "apagar" do texto (.text-wrap), não depois dele */
+    animation-delay: calc(var(--dur-write) + var(--dur-hold));
+  }
+  @keyframes sweepLogo{
+    /* translateX é relativo à própria largura do elemento (que já tem a
+       proporção correta), então -100%/100% continuam garantindo que a
+       seta comece e termine totalmente fora da tela dos dois lados. */
+    from{ transform:translateX(-100%); }
+    to{ transform:translateX(100%); }
+  }
