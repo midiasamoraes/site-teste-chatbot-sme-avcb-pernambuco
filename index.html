@@ -5182,6 +5182,12 @@ async function finishChat() {
   talkBtn.style.background = "#fff";
   talkBtn.style.color = "var(--green)";
   talkBtn.style.textDecoration = "none";
+  // Um <a> não centraliza o próprio conteúdo por padrão como um <button> faz — por isso
+  // era preciso virar flex (igual aos outros CTAs do chat) em vez de só "text-align".
+  talkBtn.style.display = "flex";
+  talkBtn.style.alignItems = "center";
+  talkBtn.style.justifyContent = "center";
+  talkBtn.style.width = "100%";
   talkBtn.style.textAlign = "center";
   talkCta.append(talkBtn);
   chatMessages.append(talkCta);
