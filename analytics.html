@@ -1,116 +1,613 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Analytics — Chatbot AVCB — Sá Moraes Engenharia</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/analytics.css">
-  <!-- Shared utilities -->
-  <script src="utils/supabaseClient.js"></script>
-  <script src="utils/escape.js"></script>
-  <script src="utils/format.js"></script>
-  <script src="utils/chartHelpers.js"></script>
-  <script src="config/constants.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Analytics — Chatbot AVCB — Sá Moraes Engenharia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink:#17211b; --muted:#68736d; --paper:#f4f2eb; --card:#fffefa; --line:#deddd5;
+    --green:#174e3a; --green2:#236a50; --green-soft:#e8f1eb; --gold:#cda348; --gold-soft:#fbf5e8;
+    --danger:#a33b32; --warning:#8a6517; --shadow:0 16px 42px rgba(23,33,27,.08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 88% 2%, rgba(205,163,72,.16), transparent 28rem), var(--paper);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, select, input { font: inherit; cursor: pointer; }
+  a { color: var(--green2); }
+  .shell { width: min(1220px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 60px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 22px; flex-wrap: wrap; }
+  .eyebrow { margin: 0 0 8px; color: var(--green2); font-size: .76rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 0; font: 500 clamp(1.8rem,4vw,2.8rem)/1.05 Georgia,"Times New Roman",serif; letter-spacing: -.03em; }
+  .subtitle { max-width: 640px; margin: 10px 0 0; color: var(--muted); line-height: 1.5; font-size: .92rem; }
+  .btn { min-height: 42px; padding: 0 16px; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:hover { background: #f8f8f3; border-color: #babdb6; }
+  .btn-primary { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green2); border-color: var(--green2); }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 22px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .field input, .field select { min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; outline: none; font-size: .85rem; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .kpi-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .kpi-label { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .kpi-value { font: 500 2rem/1 Georgia,"Times New Roman",serif; color: var(--green); }
+  .kpi-sub { margin-top: 6px; font-size: .78rem; color: var(--muted); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 14px; font-size: .95rem; font-weight: 800; }
+  .card canvas { max-height: 280px; }
+  .empty-note { color: var(--muted); font-size: .85rem; text-align: center; padding: 30px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(23,33,27,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .modal-overlay[hidden] { display: none; }
+  .modal-box { position: relative; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 28px; width: min(360px, 100%); }
+  .modal-box h3 { margin: 0 0 18px; font-size: 1.05rem; }
+  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.3rem; line-height: 1; color: var(--muted); }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+  .modal-actions .btn { justify-content: center; }
+  #loadingNote { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+  #errorNote { color: var(--danger); font-size: .9rem; margin-bottom: 16px; display: none; background: #fbeceb; border: 1px solid #e6c3bf; border-radius: 10px; padding: 12px 14px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+  .badge-green { background: var(--green-soft); color: var(--green); }
+  .badge-gold { background: var(--gold-soft); color: var(--warning); }
+
+  .btn-invert { background: #fff; color: var(--green); border-color: var(--green); }
+  .btn-invert:hover { background: var(--green-soft); border-color: var(--green); }
+
+  .info-toggle { margin-top: 10px; }
+  .info-toggle summary { cursor: pointer; font-size: .78rem; font-weight: 700; color: var(--green2); list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+  .info-toggle summary::-webkit-details-marker { display: none; }
+  .info-toggle summary::before { content: "▸"; font-size: .7rem; transition: transform .15s ease; }
+  .info-toggle[open] summary::before { transform: rotate(90deg); }
+  .info-toggle-body { margin-top: 8px; font-size: .8rem; color: var(--muted); line-height: 1.5; background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+  .info-toggle-body strong { color: var(--ink); }
+
+  .site-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .page-nav-top { display: flex; justify-content: flex-start; align-items: center; gap: 18px; margin: 0 0 18px 0; }
+  .page-nav { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 30px; }
+  .page-nav a.btn { min-width: 42px; justify-content: center; }
+  .page-nav .page-nav-label, .page-nav-top .page-nav-label { font-size: .8rem; color: var(--muted); font-weight: 700; }
+</style>
 </head>
 <body>
-  <div id="loadingNote">Carregando dados...</div>
-  <div id="errorNote" style="display: none; color: red;"></div>
-  
-  <div id="dashboard" style="display: none;">
-    <div id="filtersRow">
-      <input type="date" id="filterFrom" placeholder="Data inicial">
-      <input type="date" id="filterTo" placeholder="Data final">
-      <select id="filterStatus">
-        <option value="all">Todos</option>
-        <option value="completed">Concluídas</option>
-        <option value="incomplete">Não concluídas</option>
-      </select>
-      <button id="applyFiltersBtn">Aplicar filtros</button>
-      <button id="clearFiltersBtn">Limpar filtros</button>
+  <div class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Painel interno · Sá Moraes Engenharia</p>
+        <h1>Analytics do Chatbot AVCB</h1>
+        <p class="subtitle">Visão consolidada de todas as conversas do assistente virtual: quantas são iniciadas, quantas são concluídas, e o perfil de quem completa o questionário. Dados vindos diretamente da tabela do Supabase.</p>
+      </div>
+      <div class="header-actions">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar dados</button>
+          <button class="btn btn-invert" id="downloadBtn" type="button">Download</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="site-nav">
+      <a href="index.html" class="btn">Chatbot</a>
+      <a href="index.html?admin=1" class="btn">Formulário</a>
+      <a href="analytics.html" class="btn btn-primary" aria-current="page">Analytics</a>
+    </nav>
+
+    <div class="page-nav-top">
+      <span class="page-nav-label">Página 1 de 2</span>
+      <a href="analytics2.html" class="btn" title="Próxima página — Leads e tempo real">Próxima →</a>
     </div>
-    
-    <div class="kpis">
-      <div class="kpi-card">
-        <div class="kpi" id="kpiTotal">0</div>
-        <div class="kpi-sub" id="kpiTotalSub">Total</div>
+
+    <div id="loadingNote">Carregando dados do Supabase…</div>
+    <div id="errorNote"></div>
+
+    <div class="filters" id="filtersRow" style="display:none;">
+      <div class="field">
+        <label for="filterFrom">De</label>
+        <input type="date" id="filterFrom">
       </div>
-      <div class="kpi-card">
-        <div class="kpi" id="kpiCompleted">0</div>
-        <div class="kpi-sub" id="kpiCompletedSub">Concluídas</div>
+      <div class="field">
+        <label for="filterTo">Até</label>
+        <input type="date" id="filterTo">
       </div>
-      <div class="kpi-card">
-        <div class="kpi" id="kpiIncomplete">0</div>
-        <div class="kpi-sub" id="kpiIncompleteSub">Não concluídas</div>
+      <div class="field">
+        <label for="filterStatus">Status</label>
+        <select id="filterStatus">
+          <option value="all">Todas</option>
+          <option value="completed">Somente completadas</option>
+          <option value="incomplete">Somente não completadas</option>
+        </select>
       </div>
-      <div class="kpi-card">
-        <div class="kpi" id="kpiRate">0%</div>
-        <div class="kpi-sub" id="kpiRateSub">Taxa de conclusão</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi" id="kpiAvgTime">0s</div>
-        <div class="kpi-sub" id="kpiAvgTimeSub">Tempo médio</div>
-      </div>
+      <button class="btn" id="applyFiltersBtn" type="button">Filtrar</button>
+      <button class="btn" id="clearFiltersBtn" type="button">Limpar filtros</button>
     </div>
-    
-    <div class="charts-row">
-      <div class="card">
-        <h3>Conversas por dia</h3>
-        <canvas id="chartTimeline"></canvas>
+
+    <div id="dashboard" style="display:none;">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Interações totais</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-sub" id="kpiTotalSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Completadas</div>
+          <div class="kpi-value" id="kpiCompleted">0</div>
+          <div class="kpi-sub" id="kpiCompletedSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Não completadas</div>
+          <div class="kpi-value" id="kpiIncomplete">0</div>
+          <div class="kpi-sub" id="kpiIncompleteSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxa de conclusão</div>
+          <div class="kpi-value" id="kpiRate">0%</div>
+          <div class="kpi-sub" id="kpiRateSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tempo médio (completas)</div>
+          <div class="kpi-value" id="kpiAvgTime">–</div>
+          <div class="kpi-sub">do nome digitado ao PDF gerado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Documentos médios recomendados</div>
+          <div class="kpi-value" id="kpiAvgDocs">–</div>
+          <div class="kpi-sub">nas conversas completadas</div>
+        </div>
       </div>
-      <div class="card">
-        <h3>Where conversations stall</h3>
-        <canvas id="chartFunnel"></canvas>
+      <details class="info-toggle" style="margin-bottom:22px;"><summary>O que são esses números?</summary><div class="info-toggle-body">Visão geral de todas as conversas no período filtrado. <strong>Tempo médio</strong> usa, sempre que possível, o horário registrado pelo próprio Supabase (servidor) para início e fim — mais confiável que o relógio do aparelho do usuário; se algum dado do servidor faltar para uma sessão, o painel cai para o horário do usuário só naquele caso e avisa isso logo abaixo do número.</div></details>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Interações por dia (completadas x não completadas)</h3>
+          <canvas id="chartTimeline"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Cada barra é um dia; a parte <strong>verde</strong> é quanta gente concluiu o questionário naquele dia, a parte <strong>dourada</strong> é quanta gente começou e não terminou. Observe se dias/semanas específicas têm picos (campanha, indicação, época de fiscalização) e se a taxa de abandono muda com o volume — um dia com muito volume e muito abandono pode indicar o site enfrentando lentidão ou sobrecarga.</div></details>
+        </div>
+        <div class="card">
+          <h3>Onde as conversas não completadas param</h3>
+          <canvas id="chartFunnel"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Mostra em qual etapa do questionário as pessoas desistem antes de terminar. Uma barra alta logo no início ("Não iniciou") indica gente que só digitou o nome e saiu — vale revisar a primeira pergunta. Se o maior abandono for numa etapa específica (ex.: Instalações), essa etapa pode estar longa, confusa ou repetitiva demais.</div></details>
+        </div>
       </div>
-      <div class="card">
-        <h3>Risk distribution</h3>
-        <canvas id="chartRisk"></canvas>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Nível de risco (completadas)</h3>
+          <canvas id="chartRisk"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Distribuição do nível de risco (I, II ou III) entre quem terminou o questionário. Risco III normalmente significa obra maior e processo mais complexo — um aumento na fatia de Risco III pode sinalizar leads de ticket potencialmente mais alto chegando ao site.</div></details>
+        </div>
+        <div class="card">
+          <h3>Tipo de estabelecimento — letra (completadas)</h3>
+          <canvas id="chartEstabType"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Agrupa as conversas completas pela letra de ocupação (A a Q, conforme o COSCIP). Ajuda a enxergar quais tipos de estabelecimento mais procuram o site — se um tipo específico predominar, pode valer a pena criar conteúdo ou anúncios direcionados a esse público.</div></details>
+        </div>
+        <div class="card">
+          <h3>Dispositivo</h3>
+          <canvas id="chartDevice"></canvas>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Mostra se as pessoas usam celular ou computador para conversar com o chatbot. Se a maioria for mobile, vale conferir com atenção a experiência do site nesse formato — botões pequenos ou textos cortados pesam mais nesse público.</div></details>
+        </div>
       </div>
-      <div class="card">
-        <h3>Establishment types</h3>
-        <canvas id="chartEstabType"></canvas>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Top 10 estabelecimentos específicos (completadas)</h3>
+          <div id="topEstabTable"></div>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Os estabelecimentos exatos (não só a letra) mais escolhidos por quem concluiu o questionário. Útil para saber, na prática, quem é o cliente típico — por exemplo, se "padaria" ou "oficina mecânica" aparecem repetidamente, esses nichos podem merecer uma abordagem comercial ou material educativo específico.</div></details>
+        </div>
+        <div class="card">
+          <h3>Engajamento pós-questionário</h3>
+          <div id="engagementTable"></div>
+          <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">O que a pessoa faz depois de ver o resultado: se ela baixa os documentos, se clica para falar com um técnico no WhatsApp, quantas vezes voltou no meio da conversa, e se reiniciou tudo. Uma taxa baixa de clique no WhatsApp entre quem completou é o sinal mais direto de leads "mornos" — gente que recebeu a informação mas não avançou para o contato comercial.</div></details>
+        </div>
       </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <h3>Navegador e idioma</h3>
+        <div class="grid-2" style="margin-bottom:0;">
+          <div><canvas id="chartBrowser"></canvas></div>
+          <div id="languageTable"></div>
+        </div>
+        <details class="info-toggle"><summary>O que são esses dados?</summary><div class="info-toggle-body">Perfil técnico de quem acessa o site. Serve principalmente para priorizar testes e correções — se um navegador específico concentra muitos acessos, garantir que o site funcione bem nele é mais importante do que em navegadores raros.</div></details>
+      </div>
+
+      <div class="page-nav">
+        <span class="page-nav-label">Página 1 de 2</span>
+        <a href="analytics2.html" class="btn" title="Próxima página — Leads e tempo real">Próxima →</a>
+      </div>
+
     </div>
-    
-    <div class="charts-row">
-      <div class="card">
-        <h3>Device types</h3>
-        <canvas id="chartDevice"></canvas>
-      </div>
-      <div class="card">
-        <h3>Browsers</h3>
-        <canvas id="chartBrowser"></canvas>
-      </div>
-      <div class="card">
-        <h3>Language</h3>
-        <div id="languageTable"></div>
-      </div>
-    </div>
-    
-    <div class="card full-width">
-      <h3>Top estabelecimentos</h3>
-      <div id="topEstabTable"></div>
-    </div>
-    
-    <div class="card full-width">
-      <h3>Engajamento pós-questionário</h3>
-      <div id="engagementTable"></div>
-    </div>
-    
-    <div id="downloadModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-      <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
-        <h3>Download dados</h3>
-        <button id="downloadRawBtn">Download dados brutos (CSV)</button>
-        <button id="downloadReportBtn">Download relatório (HTML)</button>
-        <button id="downloadModalClose">Fechar</button>
+  </div>
+
+  <div id="downloadModalOverlay" class="modal-overlay" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+      <button class="modal-close" id="downloadModalClose" type="button" aria-label="Fechar">×</button>
+      <h3 id="downloadModalTitle">Download</h3>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="downloadRawBtn" type="button">Banco de dados (CSV)</button>
+        <button class="btn btn-primary" id="downloadReportBtn" type="button">Relatório (HTML)</button>
       </div>
     </div>
   </div>
-  
-  <button id="refreshBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">Atualizar dados</button>
-  <button id="downloadBtn" style="position: fixed; top: 20px; right: 80px; z-index: 1000;">Download</button>
-  <script src="js/analytics.js"></script>
+
+<script>
+(function () {
+  const supabaseUrl = 'https://dpixswlqxredyfahgjvy.supabase.co';
+  const supabaseKey = 'sb_publishable_8ldstp8OyQSyypz9jyrDFQ_jHbMUUY7';
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const CHAT_STAGE_ORDER = ["risk", "estabelecimento", "instalacoes", "processo"];
+  const STAGE_LABELS = { risk: "Risco", estabelecimento: "Estabelecimento", instalacoes: "Instalações", processo: "Processo", null: "Não iniciou (sem nome)" };
+  const RISK_LABELS = { R1: "Risco I", R2: "Risco II", R3: "Risco III" };
+
+  let allSessions = [];
+  let allEvents = [];
+  let filtered = [];
+  const charts = {};
+
+  function $(sel) { return document.querySelector(sel); }
+  function fmtPct(n) { return (Math.round(n * 1000) / 10) + "%"; }
+  function fmtDuration(ms) {
+    if (!isFinite(ms) || ms <= 0) return "–";
+    const totalSec = Math.round(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return m > 0 ? (m + "min " + s + "s") : (s + "s");
+  }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  const PALETTE = ["#174e3a", "#cda348", "#236a50", "#a33b32", "#68736d", "#8a6517", "#4f7d68", "#d9b877", "#3c5c4e", "#b98f3e"];
+
+  async function loadData() {
+    $("#loadingNote").style.display = "block";
+    $("#errorNote").style.display = "none";
+    $("#dashboard").style.display = "none";
+    try {
+      const [sessionsRes, eventsRes] = await Promise.all([
+        supabaseClient.from("chatbot_sessions").select("*").order("started_at", { ascending: true }),
+        supabaseClient.from("chatbot_events").select("session_id,event_type,payload,created_at").order("created_at", { ascending: true })
+      ]);
+      if (sessionsRes.error) throw sessionsRes.error;
+      if (eventsRes.error) throw eventsRes.error;
+      allSessions = sessionsRes.data || [];
+      allEvents = eventsRes.data || [];
+      $("#filtersRow").style.display = "flex";
+      applyFilters();
+    } catch (e) {
+      console.error(e);
+      $("#errorNote").textContent = "Não foi possível carregar os dados do Supabase: " + (e.message || e);
+      $("#errorNote").style.display = "block";
+    } finally {
+      $("#loadingNote").style.display = "none";
+    }
+  }
+
+  function applyFilters() {
+    const from = $("#filterFrom").value ? new Date($("#filterFrom").value + "T00:00:00Z") : null;
+    const to = $("#filterTo").value ? new Date($("#filterTo").value + "T23:59:59Z") : null;
+    const status = $("#filterStatus").value;
+    filtered = allSessions.filter(s => {
+      const started = s.started_at ? new Date(s.started_at) : null;
+      if (from && started && started < from) return false;
+      if (to && started && started > to) return false;
+      if (status === "completed" && !s.completed) return false;
+      if (status === "incomplete" && s.completed) return false;
+      return true;
+    });
+    render();
+  }
+
+  function clearFilters() {
+    $("#filterFrom").value = "";
+    $("#filterTo").value = "";
+    $("#filterStatus").value = "all";
+    applyFilters();
+  }
+
+  function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  }
+
+  function makeChart(id, config) {
+    destroyChart(id);
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx, config);
+  }
+
+  function render() {
+    $("#dashboard").style.display = "block";
+    const total = filtered.length;
+    const completed = filtered.filter(s => s.completed);
+    const incomplete = filtered.filter(s => !s.completed);
+
+    $("#kpiTotal").textContent = total;
+    $("#kpiTotalSub").textContent = total === 0 ? "Nenhuma interação no período" : "no período selecionado";
+    $("#kpiCompleted").textContent = completed.length;
+    $("#kpiCompletedSub").textContent = total ? fmtPct(completed.length / total) + " do total" : "";
+    $("#kpiIncomplete").textContent = incomplete.length;
+    $("#kpiIncompleteSub").textContent = total ? fmtPct(incomplete.length / total) + " do total" : "";
+    $("#kpiRate").textContent = total ? fmtPct(completed.length / total) : "0%";
+    $("#kpiRateSub").textContent = "concluíram o questionário até o PDF";
+
+    // Tempo médio de conclusão — sempre usando os DOIS timestamps do mesmo lado (nunca
+    // início do servidor com fim do cliente, ou vice-versa). Prioriza o par do servidor
+    // (started_at/completed_at); só cai para o par do cliente quando falta algum dos dois
+    // do servidor para aquela sessão, e sinaliza isso ao usuário do painel.
+    let usedClientFallback = false;
+    const durations = [];
+    completed.forEach(s => {
+      let pair = null;
+      if (s.started_at && s.completed_at) {
+        pair = [s.started_at, s.completed_at];
+      } else if (s.client_started_at && s.client_completed_at) {
+        pair = [s.client_started_at, s.client_completed_at];
+        usedClientFallback = true;
+      }
+      if (!pair) return; // falta um timestamp do par — não mistura fontes, só ignora esta sessão no cálculo
+      const d = new Date(pair[1]) - new Date(pair[0]);
+      if (d > 0 && d < 1000 * 60 * 60 * 2) durations.push(d); // descarta outliers > 2h (aba deixada aberta)
+    });
+    const avgDuration = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : NaN;
+    $("#kpiAvgTime").textContent = fmtDuration(avgDuration);
+    const avgTimeSub = $("#kpiAvgTime").closest(".kpi-card")?.querySelector(".kpi-sub");
+    if (avgTimeSub) {
+      avgTimeSub.textContent = usedClientFallback
+        ? "do nome digitado ao PDF gerado — ⚠ parte usando horário do usuário (servidor indisponível para algumas sessões)"
+        : "do nome digitado ao PDF gerado (horário do servidor)";
+    }
+
+    const docCounts = completed.filter(s => typeof s.doc_count === "number").map(s => s.doc_count);
+    const avgDocs = docCounts.length ? (docCounts.reduce((a, b) => a + b, 0) / docCounts.length) : NaN;
+    $("#kpiAvgDocs").textContent = isFinite(avgDocs) ? (Math.round(avgDocs * 10) / 10) : "–";
+
+    renderTimeline();
+    renderFunnel(incomplete);
+    renderRisk(completed);
+    renderEstabType(completed);
+    renderDevice(filtered);
+    renderBrowserLanguage(filtered);
+    renderTopEstabelecimentos(completed);
+    renderEngagement(completed);
+  }
+
+  function dayKey(d) {
+    const dt = new Date(d);
+    return dt.toISOString().slice(0, 10);
+  }
+
+  function renderTimeline() {
+    const byDay = {};
+    filtered.forEach(s => {
+      if (!s.started_at) return;
+      const k = dayKey(s.started_at);
+      if (!byDay[k]) byDay[k] = { completed: 0, incomplete: 0 };
+      byDay[k][s.completed ? "completed" : "incomplete"] += 1;
+    });
+    const days = Object.keys(byDay).sort();
+    if (!days.length) { destroyChart("chartTimeline"); return; }
+    makeChart("chartTimeline", {
+      type: "bar",
+      data: {
+        labels: days,
+        datasets: [
+          { label: "Completadas", data: days.map(d => byDay[d].completed), backgroundColor: PALETTE[0] },
+          { label: "Não completadas", data: days.map(d => byDay[d].incomplete), backgroundColor: PALETTE[1] }
+        ]
+      },
+      options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderFunnel(incomplete) {
+    const counts = { null: 0, risk: 0, estabelecimento: 0, instalacoes: 0, processo: 0 };
+    incomplete.forEach(s => {
+      const stage = s.last_stage && CHAT_STAGE_ORDER.includes(s.last_stage) ? s.last_stage : "null";
+      counts[stage] = (counts[stage] || 0) + 1;
+    });
+    const labels = ["null", ...CHAT_STAGE_ORDER].map(k => STAGE_LABELS[k]);
+    const data = ["null", ...CHAT_STAGE_ORDER].map(k => counts[k] || 0);
+    if (!incomplete.length) { destroyChart("chartFunnel"); return; }
+    makeChart("chartFunnel", {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Conversas paradas nesta etapa", data, backgroundColor: PALETTE[2] }] },
+      options: { indexAxis: "y", responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function renderRisk(completed) {
+    const counts = { R1: 0, R2: 0, R3: 0, "—": 0 };
+    completed.forEach(s => { counts[RISK_LABELS[s.risk] ? s.risk : "—"] = (counts[RISK_LABELS[s.risk] ? s.risk : "—"] || 0) + 1; });
+    const labels = ["R1", "R2", "R3", "—"].filter(k => counts[k] > 0).map(k => k === "—" ? "Não identificado" : RISK_LABELS[k]);
+    const data = ["R1", "R2", "R3", "—"].filter(k => counts[k] > 0).map(k => counts[k]);
+    if (!completed.length) { destroyChart("chartRisk"); return; }
+    makeChart("chartRisk", {
+      type: "doughnut",
+      data: { labels, datasets: [{ data, backgroundColor: PALETTE }] },
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderEstabType(completed) {
+    const counts = {};
+    completed.forEach(s => {
+      const t = s.establishment_type || "—";
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    const labels = Object.keys(counts).sort();
+    const data = labels.map(k => counts[k]);
+    if (!labels.length) { destroyChart("chartEstabType"); return; }
+    makeChart("chartEstabType", {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Conversas completadas", data, backgroundColor: PALETTE[3] }] },
+      options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function renderDevice(list) {
+    const counts = {};
+    list.forEach(s => { const d = s.device_type || "desconhecido"; counts[d] = (counts[d] || 0) + 1; });
+    const labels = Object.keys(counts);
+    const data = labels.map(k => counts[k]);
+    if (!labels.length) { destroyChart("chartDevice"); return; }
+    makeChart("chartDevice", {
+      type: "pie",
+      data: { labels, datasets: [{ data, backgroundColor: PALETTE }] },
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function renderBrowserLanguage(list) {
+    const browserCounts = {};
+    list.forEach(s => { const b = s.browser || "outro"; browserCounts[b] = (browserCounts[b] || 0) + 1; });
+    const bLabels = Object.keys(browserCounts);
+    const bData = bLabels.map(k => browserCounts[k]);
+    if (bLabels.length) {
+      makeChart("chartBrowser", {
+        type: "bar",
+        data: { labels: bLabels, datasets: [{ label: "Sessões", data: bData, backgroundColor: PALETTE[4] }] },
+        options: { indexAxis: "y", responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+      });
+    } else { destroyChart("chartBrowser"); }
+
+    const langCounts = {};
+    list.forEach(s => { const l = s.language || "—"; langCounts[l] = (langCounts[l] || 0) + 1; });
+    const rows = Object.entries(langCounts).sort((a, b) => b[1] - a[1]);
+    const el = $("#languageTable");
+    if (!rows.length) { el.innerHTML = '<div class="empty-note">Sem dados.</div>'; return; }
+    el.innerHTML = "<table><thead><tr><th>Idioma do navegador</th><th>Sessões</th></tr></thead><tbody>" +
+      rows.map(([lang, n]) => `<tr><td>${escapeHtml(lang)}</td><td>${n}</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+
+  function renderTopEstabelecimentos(completed) {
+    const counts = {};
+    completed.forEach(s => {
+      const id = s.establishment_id || "—";
+      counts[id] = (counts[id] || 0) + 1;
+    });
+    const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const el = $("#topEstabTable");
+    if (!rows.length) { el.innerHTML = '<div class="empty-note">Sem conversas completadas ainda.</div>'; return; }
+    el.innerHTML = "<table><thead><tr><th>Estabelecimento</th><th>Conversas</th></tr></thead><tbody>" +
+      rows.map(([id, n]) => `<tr><td>${escapeHtml(id)}</td><td>${n}</td></tr>`).join("") +
+      "</tbody></table>";
+  }
+
+  function renderEngagement(completed) {
+    const el = $("#engagementTable");
+    const total = completed.length;
+    if (!total) { el.innerHTML = '<div class="empty-note">Sem conversas completadas ainda.</div>'; return; }
+    const docsClicks = completed.filter(s => s.clicked_docs_button).length;
+    const wppClicks = completed.filter(s => s.clicked_whatsapp).length;
+    const avgBack = completed.reduce((a, s) => a + (s.back_clicks || 0), 0) / total;
+    const restarts = completed.filter(s => (s.restart_count || 0) > 0).length;
+    el.innerHTML = `<table><tbody>
+      <tr><td>Clicaram em "Documentos AVCB"</td><td>${docsClicks} (${fmtPct(docsClicks/total)})</td></tr>
+      <tr><td>Clicaram para falar no WhatsApp</td><td>${wppClicks} (${fmtPct(wppClicks/total)})</td></tr>
+      <tr><td>Média de cliques em "Voltar"</td><td>${(Math.round(avgBack*10)/10)}</td></tr>
+      <tr><td>Reiniciaram a conversa ao menos uma vez</td><td>${restarts} (${fmtPct(restarts/total)})</td></tr>
+    </tbody></table>`;
+  }
+
+  // ---- Downloads ----
+  function csvEscape(v) {
+    if (v === null || v === undefined) return "";
+    const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function downloadFile(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function downloadRaw() {
+    if (!allSessions.length) return;
+    const cols = Object.keys(allSessions[0]);
+    const lines = [cols.join(",")];
+    allSessions.forEach(row => lines.push(cols.map(c => csvEscape(row[c])).join(",")));
+    downloadFile("chatbot_sessions_" + new Date().toISOString().slice(0, 10) + ".csv", lines.join("\n"), "text/csv;charset=utf-8");
+  }
+
+  function downloadReport() {
+    const total = filtered.length;
+    const completed = filtered.filter(s => s.completed);
+    const chartImgs = {};
+    ["chartTimeline", "chartFunnel", "chartRisk", "chartEstabType", "chartDevice", "chartBrowser"].forEach(id => {
+      if (charts[id]) chartImgs[id] = charts[id].toBase64Image();
+    });
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+      <title>Relatório Analytics — Chatbot AVCB — ${new Date().toLocaleDateString("pt-BR")}</title>
+      <style>
+        body{font-family:Inter,Arial,sans-serif;color:#17211b;max-width:900px;margin:40px auto;padding:0 20px;}
+        h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:36px;border-bottom:1px solid #deddd5;padding-bottom:6px}
+        img{max-width:100%;border:1px solid #deddd5;border-radius:8px;margin:12px 0}
+        table{width:100%;border-collapse:collapse;font-size:.9rem} td,th{padding:6px 10px;border-bottom:1px solid #eee;text-align:left}
+        .kpi{display:inline-block;margin:8px 20px 8px 0}
+        .kpi b{font-size:1.4rem;display:block}
+      </style></head><body>
+      <h1>Relatório de Analytics — Chatbot AVCB</h1>
+      <p>Gerado em ${new Date().toLocaleString("pt-BR")} · ${total} interação(ões) no período filtrado.</p>
+      <div>
+        <div class="kpi"><b>${total}</b>Total</div>
+        <div class="kpi"><b>${completed.length}</b>Completadas</div>
+        <div class="kpi"><b>${total ? fmtPct(completed.length/total) : "0%"}</b>Taxa de conclusão</div>
+        <div class="kpi"><b>${$("#kpiAvgTime").textContent}</b>Tempo médio</div>
+      </div>
+      ${Object.entries(chartImgs).map(([id, img]) => `<h2>${document.querySelector('#'+id).closest('.card').querySelector('h3').textContent}</h2><img src="${img}">`).join("")}
+      <h2>Top estabelecimentos</h2>
+      ${$("#topEstabTable").innerHTML}
+      <h2>Engajamento pós-questionário</h2>
+      ${$("#engagementTable").innerHTML}
+      </body></html>`;
+    downloadFile("relatorio_analytics_" + new Date().toISOString().slice(0, 10) + ".html", html, "text/html;charset=utf-8");
+  }
+
+  function openDownloadModal() { $("#downloadModalOverlay").hidden = false; }
+  function closeDownloadModal() { $("#downloadModalOverlay").hidden = true; }
+
+  $("#refreshBtn").addEventListener("click", loadData);
+  $("#applyFiltersBtn").addEventListener("click", applyFilters);
+  $("#clearFiltersBtn").addEventListener("click", clearFilters);
+  $("#downloadBtn").addEventListener("click", openDownloadModal);
+  $("#downloadModalClose").addEventListener("click", closeDownloadModal);
+  $("#downloadModalOverlay").addEventListener("click", (e) => { if (e.target.id === "downloadModalOverlay") closeDownloadModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#downloadModalOverlay").hidden) closeDownloadModal(); });
+  $("#downloadRawBtn").addEventListener("click", () => { downloadRaw(); closeDownloadModal(); });
+  $("#downloadReportBtn").addEventListener("click", () => { downloadReport(); closeDownloadModal(); });
+
+  loadData();
+})();
+</script>
 </body>
 </html>
