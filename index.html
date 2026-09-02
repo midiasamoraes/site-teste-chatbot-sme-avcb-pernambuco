@@ -424,9 +424,54 @@
   .cb-float.anim-spin { animation: cbAnimSpin 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
   .cb-float.anim-jump { animation: cbAnimJump 0.6s ease-in-out forwards; }
   .cb-float.anim-wobble { animation: cbAnimWobble 0.7s ease-in-out forwards; }
+  
+  #site-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  #site-intro.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #site-intro img {
+    width: 70vw;
+    height: auto;
+    transform: scale(0.9);
+    opacity: 0;
+    animation: introPop 0.8s cubic-bezier(.45,0,.15,1) forwards;
+  }
+  @keyframes introPop {
+    100% { transform: scale(1); opacity: 1; }
+  }
 </style>
 </head>
 <body>
+<div id="site-intro" aria-hidden="true">
+  <img src="svg/logo-site-OK--main-transparent.svg" alt="Sá Moraes Engenharia" width="280" height="150">
+</div>
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var intro = document.getElementById('site-intro');
+    if (!intro) return;
+    
+    if (sessionStorage.getItem('introPlayed')) {
+      intro.remove();
+      return;
+    }
+    sessionStorage.setItem('introPlayed', 'true');
+    
+    setTimeout(function() {
+      intro.classList.add('fade-out');
+      setTimeout(function() { intro.remove(); }, 600);
+    }, 1900);
+  });
+</script>
 
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
