@@ -11,6 +11,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
+    /* Esconde a barra de rolagem em todo o site (o scroll continua funcionando
+       normalmente, só a barra visual fica invisível) — cobre a página inteira
+       e qualquer área com rolagem interna (modais, listas, chat, etc.). */
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
   :root {
     --ink:#0a2138; --muted:#4a463b; --paper:#f6f5f2; --card:#fffdf8; --line:rgba(10,33,56,.14);
     --green:#0a2138; --green2:#c0392b; --green-soft:#eef1f4; --gold:#f3c139; --gold-soft:#fdf3d6;

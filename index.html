@@ -59,6 +59,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 </noscript>
 <style>
+    /* Esconde a barra de rolagem em todo o site (o scroll continua funcionando
+       normalmente, só a barra visual fica invisível) — cobre a página inteira
+       e qualquer área com rolagem interna (modais, listas, chat, etc.). */
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
   :root{
     --navy:#0a2138; --navy-2:#0a2138; --ink:#0a2138;
     --ember:#c0392b; --ember-2:#e0574a; --gold:#f3c139; --gold-2:#f3c139;
@@ -105,7 +111,7 @@
   .hero{position:relative; padding:8px 20px 64px; margin-top:auto;}
   .hero-inner{position:relative; width:min(100% - 2.5rem, 76rem); margin-inline:auto; z-index:1;}
   .hero-top{display:flex; align-items:center; justify-content:space-between;}
-  .hero-text{max-width:700px; text-align:left; margin-left:-100px;}
+  .hero-text{max-width:700px; text-align:left; margin-left:calc(-1 * clamp(20px, (100vw - 1216px) / 2, 100px));}
   /* fonte do H1 travada só em vh (sem vw): a altura do hero passa a ser uma
      fração fixa da altura da tela, então não tem como estourar a viewport
      e gerar scroll, não importa a largura ou altura da janela */
@@ -125,7 +131,7 @@
      foto pode descer atrás da próxima seção) e vai para .hero-inner, que
      só envolve o texto — a foto continua livre para ultrapassar essa borda */
   @media (min-width:901px){ .hero{padding-bottom:0;} .hero-inner{padding-bottom:0;} .hero-photo{align-self:flex-end;} }
-  .hero p.lead{max-width:44ch; font-size:clamp(1.25rem, 1.15rem + 1.2vw, 1.55rem); line-height:1.5; color:var(--text-muted); margin:0.8vh 0 0;}
+  .hero p.lead{max-width:44ch; font-size:clamp(1rem, 0.92rem + 0.5vw, 1.15rem); line-height:1.5; color:var(--text-muted); margin:0.8vh 0 0;}
   .numstrip{display:flex; border-top:2px solid var(--line); margin-top:1.6vh;}
   .numstrip > div{flex:1; padding:1.2vh 13px 0 0; border-right:2px solid var(--line);}
   .numstrip > div:last-child{border-right:none;}
@@ -183,7 +189,7 @@
   .wa-float:hover{transform:scale(1.06);}
   .wa-float:active{transform:scale(0.94); transition:transform 120ms ease-out;}
   .wa-float img{width:100%; height:100%; object-fit:cover; transform:scale(1.75);}
-  @media (max-width:640px){ .wa-float{right:16px; bottom:16px; width:60px; height:60px;} }
+  @media (max-width:640px){ .wa-float{right:16px; bottom:16px; width:54px; height:54px;} }
 
   /* REVEAL ON SCROLL */
   .reveal{opacity:0; transform:translateY(16px); transition:opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);}
@@ -320,7 +326,10 @@
   /* wrapper cuida do posicionamento fixo + da animação combinada; o botão em
      si cuida só do hover/active (scale), pra não brigar com o transform
      animado do wrapper */
-  .cb-float-anim{position:fixed; right:20px; bottom:106px; z-index:50; animation:cbFloatAll 30s ease-in-out infinite;}
+  .cb-float-anim{position:fixed; right:20px; bottom:106px; z-index:50; animation:cbFloatAll 30s ease-in-out infinite; transition: margin-bottom 0.4s ease;}
+  @media (max-width:640px){
+    body[data-scroll="top"] .cb-float-anim:not(.docked) { margin-bottom: 100px; }
+  }
   .cb-float-anim.docked{position:absolute; right:-90px; top:20px; bottom:auto;}
   .cb-float{width:72px; height:72px; border-radius:50%; background:transparent; color:#fff; display:flex; align-items:center; justify-content:center; overflow:visible; box-shadow:none; border:none; cursor:pointer; transition:transform .2s ease; padding:0;}
   .cb-float:hover{transform:scale(1.06);}
@@ -1137,6 +1146,17 @@
     }, { threshold: 0.2 });
     observer.observe(teaserToObserve);
   }
+
+  // Comportamento do botão flutuante no topo (Mobile)
+  function updateScrollState() {
+    if (window.scrollY < 50) {
+      document.body.setAttribute('data-scroll', 'top');
+    } else {
+      document.body.removeAttribute('data-scroll');
+    }
+  }
+  window.addEventListener('scroll', updateScrollState, {passive: true});
+  updateScrollState();
 
 })();
 </script>
