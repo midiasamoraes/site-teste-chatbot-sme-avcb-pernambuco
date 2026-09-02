@@ -292,10 +292,12 @@
   .chat-teaser-bar{display:flex; align-items:center; gap:8px; margin-bottom:18px;}
   .chat-teaser-dot{width:7px; height:7px; border-radius:50%; background:#1c7a3a;}
   .chat-teaser-bar span{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted);}
-  .chat-bubble{max-width:82%; padding:10px 14px; font-size:14px; line-height:1.4; margin-bottom:10px;}
-  .chat-bubble.bot{background:var(--paper); color:var(--ink); border:1px solid rgba(10,33,56,0.12);}
-  .chat-bubble.user{background:var(--ink); color:#fff; margin-left:auto;}
-  .chat-input-mock{margin-top:14px; border:1px solid rgba(10,33,56,0.15); border-radius:999px; padding:10px 16px; font-size:14px; color:var(--text-muted); font-family:'JetBrains Mono',monospace;}
+  .chat-bubble{max-width:85%; padding:12px 16px; font-size:14px; line-height:1.45; margin-bottom:10px; border-radius:16px;}
+  .chat-bubble.bot{background:#e0e7ed; color:#0a2138; border:none; border-bottom-left-radius:4px;}
+  .chat-bubble.bot strong{color:#c0392b;}
+  .chat-bubble.user{background:#f9e39b; color:#5a4110; margin-left:auto; border:1px solid #e1ce8c; border-bottom-right-radius:4px;}
+  .chat-teaser-overlay { position:absolute; inset:0; background:rgba(10,33,56,0.9); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 2s ease; color:#fff; font-weight:800; font-size:1.15rem; text-align:center; padding:20px; z-index:10; }
+  .chat-teaser-card:hover .chat-teaser-overlay { opacity:1; }
 
   /* Modal "Em breve" */
   .cb-modal{border:2px solid var(--line); padding:0; max-width:min(420px, 90vw); width:100%; opacity:0; transform:scale(.97) translateY(8px); transition:opacity 220ms ease-out, transform 220ms ease-out, overlay 220ms allow-discrete, display 220ms allow-discrete;}
@@ -319,13 +321,18 @@
      si cuida só do hover/active (scale), pra não brigar com o transform
      animado do wrapper */
   .cb-float-anim{position:fixed; right:20px; bottom:106px; z-index:50; animation:cbFloatAll 30s ease-in-out infinite;}
+  .cb-float-anim.docked{position:absolute; right:-90px; top:20px; bottom:auto;}
   .cb-float{width:72px; height:72px; border-radius:50%; background:transparent; color:#fff; display:flex; align-items:center; justify-content:center; overflow:visible; box-shadow:none; border:none; cursor:pointer; transition:transform .2s ease; padding:0;}
   .cb-float:hover{transform:scale(1.06);}
   .cb-float:active{transform:scale(0.94); transition:transform 120ms ease-out;}
   .cb-float img{width:100%; height:100%; object-fit:cover; display:block;}
+  @media (max-width:900px){
+    .cb-float-anim.docked{right:8px; top:-32px; bottom:auto;}
+  }
   @media (max-width:640px){
     .cb-float-anim{right:16px; bottom:92px;}
     .cb-float{width:60px; height:60px;}
+
   }
   /* combina os 5 padrões pedidos, um após o outro, em um único loop de 30s:
      1) 0-20%   bob vertical simples
@@ -466,10 +473,30 @@
     }
     sessionStorage.setItem('introPlayed', 'true');
     
-    setTimeout(function() {
+    var introTimer;
+    function hideIntro(e) {
+      if (!intro.parentElement) return;
+      clearTimeout(introTimer);
+      
+      // Se foi clique ou tecla, acelera o fade out
+      var fadeTime = (e && e.type) ? 200 : 600;
+      if (e && e.type) {
+        intro.style.transition = 'opacity 0.2s ease';
+      }
+      
       intro.classList.add('fade-out');
-      setTimeout(function() { intro.remove(); }, 600);
-    }, 1900);
+      setTimeout(function() { intro.remove(); }, fadeTime);
+      
+      document.removeEventListener('click', hideIntro);
+      document.removeEventListener('keydown', hideIntro);
+      document.removeEventListener('touchstart', hideIntro);
+    }
+    
+    introTimer = setTimeout(hideIntro, 1900);
+    
+    document.addEventListener('click', hideIntro);
+    document.addEventListener('keydown', hideIntro);
+    document.addEventListener('touchstart', hideIntro, {passive: true});
   });
 </script>
 
@@ -558,12 +585,15 @@
       </a>
     </div>
     <div style="flex:1 1 320px; display:flex; justify-content:center;">
-      <div class="chat-teaser-card reveal">
-        <div class="chat-teaser-bar"><span class="chat-teaser-dot"></span><span>Assistente AVCB</span></div>
-        <div class="chat-bubble bot">Qual tipo de imóvel você quer regularizar?</div>
-        <div class="chat-bubble user">Um comércio, com cerca de 300m².</div>
-        <div class="chat-bubble bot">Pelo porte, seu caso provavelmente exige PPCI completo. Aqui está a lista de documentos para o seu diagnóstico...</div>
-        <div class="chat-input-mock">Digite sua resposta…</div>
+      <div class="teaser-card-wrapper" style="position:relative; width:100%; max-width:420px;">
+        <a href="chatbot.html" class="chat-teaser-card reveal" style="position:relative; overflow:hidden; text-decoration:none; color:inherit; display:block; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 16px 42px rgba(10,33,56,.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+          <div class="chat-teaser-overlay">Simular meu diagnóstico...</div>
+          <div class="chat-teaser-bar"><span class="chat-teaser-dot"></span><span>Assistente AVCB</span></div>
+          <div id="teaser-b1" class="chat-bubble bot" style="opacity:0; transform:translateY(10px); transition:all 0.4s ease;">Olá! Posso te ajudar a descobrir quais documentos você precisa para o seu AVCB.</div>
+          <div id="teaser-b2" class="chat-bubble bot" style="opacity:0; transform:translateY(10px); transition:all 0.4s ease;">Para começar, <strong>qual é o tipo de estabelecimento?</strong> (Ex: escola, loja, indústria...)</div>
+          <div id="teaser-b3" class="chat-bubble user" style="opacity:0; transform:translateY(10px); transition:all 0.4s ease;">Uma loja de roupas, com 300m².</div>
+          <div id="teaser-b4" class="chat-bubble bot" style="opacity:0; transform:translateY(10px); transition:all 0.4s ease;">Perfeito. A edificação possui mais de 4 pavimentos?</div>
+        </a>
       </div>
     </div>
   </div>
@@ -734,7 +764,7 @@
   <img src="webp/whatsapp-icon.webp" alt="" width="56" height="56" loading="lazy">
 </a>
 
-<div class="cb-float-anim">
+<div class="cb-float-anim" id="cb-float-anim-wrapper">
   <div class="cb-bubble" id="cb-bubble" aria-hidden="true">
     <div id="cb-bubble-text"></div>
   </div>
@@ -986,6 +1016,121 @@
     });
   }
   // --- FIM LÓGICA DO BALÃO DE FALA ---
+
+  // --- LÓGICA DO TEASER ANIMADO (MOCKUP CHATBOT) ---
+  var teaserDialogues = [
+    [
+      "Olá! Posso te ajudar a descobrir quais documentos você precisa para o seu AVCB.",
+      "Para começar, <strong>qual é o tipo de estabelecimento?</strong> (Ex: escola, loja, indústria...)",
+      "Uma loja de roupas, com 300m².",
+      "Perfeito. A edificação possui mais de 4 pavimentos?"
+    ],
+    [
+      "Olá! Posso te ajudar a descobrir quais documentos você precisa para o seu AVCB.",
+      "Para começar, <strong>qual é o tipo de estabelecimento?</strong> (Ex: padaria, escola, indústria...)",
+      "Uma padaria de pequeno porte.",
+      "Certo. Sua atividade envolve gás natural veicular (GNV)?"
+    ],
+    [
+      "Oi! Quer saber exatamente o que falta para regularizar o seu imóvel?",
+      "Me diga primeiro: <strong>qual é o tipo de ocupação?</strong> (Ex: galpão, clínica...)",
+      "Um restaurante com cerca de 150m².",
+      "Entendido. A edificação faz parte de um shopping center?"
+    ],
+    [
+      "Olá! Sou o assistente da Sá Moraes. Vou te guiar na lista de documentos.",
+      "Para começar, <strong>qual é o tipo de estabelecimento?</strong> (Ex: escritório, depósito...)",
+      "Um galpão de materiais de construção.",
+      "O local armazena líquidos inflamáveis ou combustíveis acima de 250 litros?"
+    ],
+    [
+      "Oi! Vamos descobrir o que você precisa para emitir o seu AVCB?",
+      "Para começar, <strong>qual é o tipo de estabelecimento?</strong> (Ex: igreja, academia, loja...)",
+      "Uma academia de ginástica.",
+      "Ótimo. O estabelecimento possui subsolo com uso distinto de estacionamento?"
+    ]
+  ];
+
+  function playTeaserAnimation() {
+    var bubbles = [
+      document.getElementById('teaser-b1'),
+      document.getElementById('teaser-b2'),
+      document.getElementById('teaser-b3'),
+      document.getElementById('teaser-b4')
+    ];
+    if(!bubbles[0]) return;
+    
+    var seconds = new Date().getSeconds();
+    var setIndex = seconds % teaserDialogues.length;
+    var dialogue = teaserDialogues[setIndex];
+    
+    bubbles[0].innerHTML = dialogue[0];
+    bubbles[1].innerHTML = dialogue[1];
+    bubbles[2].innerHTML = dialogue[2];
+    bubbles[3].innerHTML = dialogue[3];
+    
+    // Reset
+    bubbles.forEach(function(b) { 
+      b.style.opacity = '0'; 
+      b.style.transform = 'translateY(10px)'; 
+    });
+    
+    // Sequence
+    setTimeout(function() { bubbles[0].style.opacity = '1'; bubbles[0].style.transform = 'translateY(0)'; }, 600);
+    setTimeout(function() { bubbles[1].style.opacity = '1'; bubbles[1].style.transform = 'translateY(0)'; }, 3200);
+    setTimeout(function() { bubbles[2].style.opacity = '1'; bubbles[2].style.transform = 'translateY(0)'; }, 6500);
+    setTimeout(function() { bubbles[3].style.opacity = '1'; bubbles[3].style.transform = 'translateY(0)'; }, 8800);
+  }
+  
+  if (document.getElementById('teaser-b1')) {
+    playTeaserAnimation();
+    setInterval(playTeaserAnimation, 12500); // loop a cada 12.5s
+  }
+
+  // --- LÓGICA DE DOCKING DO BOTÃO FLUTUANTE (FLIP) ---
+  function toggleDock(shouldDock) {
+    var btn = document.getElementById('cb-float-anim-wrapper');
+    var teaserWrapper = document.querySelector('.teaser-card-wrapper');
+    if (!btn || !teaserWrapper) return;
+    
+    if (shouldDock === btn.classList.contains('docked')) return;
+    
+    var firstRect = btn.getBoundingClientRect();
+    
+    if (shouldDock) {
+      teaserWrapper.appendChild(btn);
+      btn.classList.add('docked');
+    } else {
+      document.body.appendChild(btn);
+      btn.classList.remove('docked');
+    }
+    
+    var lastRect = btn.getBoundingClientRect();
+    var dx = firstRect.left - lastRect.left;
+    var dy = firstRect.top - lastRect.top;
+    
+    if (btn.animate) {
+      btn.animate([
+        { transform: 'translate(' + dx + 'px, ' + dy + 'px)' },
+        { transform: 'translate(0, 0)' }
+      ], {
+        duration: 1200,
+        easing: 'cubic-bezier(.16,1,.3,1)'
+      });
+    }
+  }
+
+  var teaserToObserve = document.querySelector('.teaser-card-wrapper');
+  if (teaserToObserve && window.IntersectionObserver) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        // dock se mais de 20% do quadro está visível
+        toggleDock(entry.isIntersecting);
+      });
+    }, { threshold: 0.2 });
+    observer.observe(teaserToObserve);
+  }
+
 })();
 </script>
 
