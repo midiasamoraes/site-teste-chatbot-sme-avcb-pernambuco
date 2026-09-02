@@ -78,12 +78,14 @@
     .chat-input-area input { flex: 1; min-height: 44px; padding: 0 48px 0 16px; border: 1px solid var(--line); border-radius: 22px; outline: none; }
     .chat-input-area input:focus { border-color: var(--green2); box-shadow: 0 0 0 3px rgba(35,106,80,.12); }
     .chat-input-area input:disabled { background: #f9f9f9; cursor: not-allowed; }
+    /* Escala de z-index desta página: 20 = cabeçalho no modo "espiar" (mobile),
+       30 = painel do chat, 40 = botão X de fechar/expandir. */
     #chatFullscreenClose {
       display: none;
       position: fixed;
       top: 14px;
       right: 14px;
-      z-index: 1000;
+      z-index: 40;
       width: 38px;
       height: 38px;
       border-radius: 50%;
@@ -97,17 +99,89 @@
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(0,0,0,.12);
     }
-    #chatbotPanel.chat-fullscreen #chatFullscreenClose { display: flex; }
+    /* Mobile: o chat nasce ocupando a tela toda — só ele tem espaço. O X no
+       canto revela o cabeçalho (o chat encolhe); tocar no campo de texto de
+       novo volta para a tela cheia. A troca entre os dois estados é sempre
+       animada por transform (nunca top/left/width/height), então é só
+       composição via GPU, sem forçar recálculo de layout a cada frame. */
     @media (max-width: 720px) {
-      #chatbotPanel.chat-fullscreen {
-        transition: top 2s ease, left 2s ease, width 2s ease, height 2s ease;
+      nav.site-nav, header { display: none; }
+      body.chat-collapsed nav.site-nav, body.chat-collapsed header { display: flex; z-index: 20; position: relative; }
+      #chatbotPanel {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
         background: #fff;
         overflow: hidden;
+        transform-origin: top left;
       }
-      #chatbotPanel.chat-fullscreen .chat-container {
+      #chatbotPanel .chat-container {
         height: 100% !important;
         min-height: 0 !important;
         border-radius: 0;
+      }
+      #chatFullscreenClose { display: flex; }
+      body.chat-collapsed #chatbotPanel {
+        position: static;
+        margin-top: 16px;
+      }
+      body.chat-collapsed #chatbotPanel .chat-container {
+        height: 65vh !important;
+        min-height: 400px !important;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+      body.chat-collapsed #chatFullscreenClose { display: none; }
+    }
+    /* Desktop: ao focar o campo de texto, o resto da página perde luz aos
+       poucos (2.5s) — não é um véu chapado, é iluminação normal → penumbra
+       → periferia quase preta, com uma área de luz suave permanecendo perto
+       do chatbot. Duas camadas de radial-gradient elípticas (uma mais justa
+       "acesa" perto do centro, outra bem mais larga escurecendo até quase
+       preto) se sobrepõem pra evitar uma borda dura entre claro e escuro —
+       nada de círculo de lanterna. O painel encolhe na horizontal e cresce
+       na vertical ao mesmo tempo (mesma curva/duração), até ~4:5. Tudo isso
+       é responsivo (max-width/max-height em vh/vw), então não quebra em
+       notebook nem em telas menores. */
+    @property --focus-x { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+    @property --focus-y { syntax: '<percentage>'; inherits: true; initial-value: 42%; }
+    #chatFocusScrim {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      background: radial-gradient(ellipse 60% 70% at var(--focus-x, 50%) var(--focus-y, 50%), transparent 20%, rgba(0,0,0,0.85) 75%, #000 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 3s cubic-bezier(.45,0,.15,1), --focus-x 3s cubic-bezier(.45,0,.15,1), --focus-y 3s cubic-bezier(.45,0,.15,1);
+    }
+    @media (min-width: 721px) {
+      #chatbotPanel {
+        position: relative;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        margin-inline: auto;
+      }
+      /* O redimensionamento + subida até o topo em foco é feito via JS
+         (técnica FLIP, ver animatePanelStateChange) para animar de forma
+         confiável a troca position:relative -> fixed e width/height, algo
+         que uma transition CSS comum não consegue interpolar direito. */
+      body.chat-focus #chatFocusScrim { opacity: 1; pointer-events: auto; }
+      body.chat-focus #chatbotPanel {
+        position: fixed;
+        top: 2vh;
+        left: 0;
+        right: 0;
+        margin-inline: auto;
+        height: 96vh;
+        width: auto;
+        max-width: 96vw;
+        aspect-ratio: 4 / 5;
+      }
+      body.chat-focus #chatbotPanel .chat-container {
+        flex: 1;
+        height: auto !important;
+        min-height: 0 !important;
       }
     }
     .chat-send-btn { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
@@ -216,6 +290,109 @@
     @media(max-width:900px){header{flex-direction:column;align-items:stretch}header>*:first-child{flex:none!important}header>*:last-child{justify-content:flex-start!important;max-width:none!important;margin-left:0!important}#dbStatusRow{position:static;left:auto;top:auto;transform:none;justify-content:flex-start;text-align:left}.progress-card{width:100%}.control-grid{grid-template-columns:1fr 1fr}.file-actions{grid-column:1/-1;justify-content:flex-start}.file-status{text-align:left}.classification-result{grid-template-columns:1fr}.condition-grid,.group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.selected-panel{position:static}}
     @media(max-width:600px){.shell{width:min(100% - 18px,1220px);padding-top:16px}.control-grid,.condition-grid,.group-grid{grid-template-columns:1fr}.source-banner{grid-template-columns:1fr}.source-icon{display:none}.panel-title-row{align-items:flex-start}.toolbar .btn{flex:1 1 auto}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+  /* Ícones flutuantes (WhatsApp + assistente), portados do site principal.
+     As frases do balão e o comportamento de clique do ícone do chatbot são
+     diferentes aqui — placeholder por enquanto, a lógica final ainda vai ser
+     definida. */
+  .wa-float{position:fixed; right:20px; bottom:20px; width:72px; height:72px; border-radius:50%; overflow:hidden; box-shadow:0 10px 30px -6px rgba(10,26,43,0.45); display:flex; align-items:center; justify-content:center; z-index:50; transition:transform .2s ease;}
+  .wa-float:hover{transform:scale(1.06);}
+  .wa-float:active{transform:scale(0.94); transition:transform 120ms ease-out;}
+  .wa-float img{width:100%; height:100%; object-fit:cover; transform:scale(1.75);}
+  @media (max-width:640px){ .wa-float{right:16px; bottom:16px; width:60px; height:60px;} }
+
+  .cb-float-anim{position:fixed; right:20px; bottom:106px; z-index:50; animation:cbFloatAll 30s ease-in-out infinite;}
+  .cb-float{width:72px; height:72px; border-radius:50%; background:transparent; color:#fff; display:flex; align-items:center; justify-content:center; overflow:visible; box-shadow:none; border:none; cursor:pointer; transition:transform .2s ease; padding:0;}
+  .cb-float:hover{transform:scale(1.06);}
+  .cb-float:active{transform:scale(0.94); transition:transform 120ms ease-out;}
+  .cb-float img{width:100%; height:100%; object-fit:cover; display:block;}
+  @media (max-width:640px){
+    .cb-float-anim{right:16px; bottom:92px;}
+    .cb-float{width:60px; height:60px;}
+  }
+  @keyframes cbFloatAll{
+    0%   { transform:translate(0,0) rotate(0deg) scale(1); }
+    5%   { transform:translate(0,-14px) rotate(0deg) scale(1); }
+    10%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    15%  { transform:translate(0,-14px) rotate(0deg) scale(1); }
+    20%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    25%  { transform:translate(0,-12px) rotate(4deg) scale(1); }
+    30%  { transform:translate(0,0) rotate(-4deg) scale(1); }
+    35%  { transform:translate(0,-12px) rotate(4deg) scale(1); }
+    40%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    45%  { transform:translate(16px,-10px) rotate(0deg) scale(1); }
+    50%  { transform:translate(0,-16px) rotate(0deg) scale(1); }
+    55%  { transform:translate(-16px,-10px) rotate(0deg) scale(1); }
+    60%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    65%  { transform:translate(20px,0) rotate(0deg) scale(1); }
+    70%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    75%  { transform:translate(-20px,10px) rotate(0deg) scale(1); }
+    80%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    85%  { transform:translate(0,-8px) rotate(0deg) scale(1.03); }
+    90%  { transform:translate(0,0) rotate(0deg) scale(1); }
+    95%  { transform:translate(0,-8px) rotate(0deg) scale(1.03); }
+    100% { transform:translate(0,0) rotate(0deg) scale(1); }
+  }
+  .cb-float-anim:hover{animation-play-state:paused;}
+  @media (prefers-reduced-motion:reduce){
+    .wa-float:active, .cb-float:active{transform:none; opacity:0.75;}
+  }
+  .cb-bubble {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    right: 0;
+    width: max-content;
+    max-width: 250px;
+    background: #fff;
+    color: var(--ink);
+    padding: 12px 16px;
+    border-radius: 16px 16px 0 16px;
+    box-shadow: 0 10px 25px -5px rgba(10,33,56,0.25);
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 700;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+    transform-origin: bottom right;
+    transition: opacity 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 60;
+  }
+  .cb-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    right: 20px;
+    border-width: 10px 10px 0 0;
+    border-style: solid;
+    border-color: #fff transparent transparent transparent;
+  }
+  .cb-bubble.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  @keyframes cbAnimSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  @keyframes cbAnimJump {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25% { transform: translateY(-24px) scale(1.1); }
+    50% { transform: translateY(0) scale(0.9); }
+    75% { transform: translateY(-12px) scale(1.05); }
+  }
+  @keyframes cbAnimWobble {
+    0%, 100% { transform: rotate(0deg); }
+    15% { transform: rotate(-20deg) scale(1.1); }
+    30% { transform: rotate(15deg) scale(1.1); }
+    45% { transform: rotate(-15deg) scale(1.1); }
+    60% { transform: rotate(10deg) scale(1.1); }
+    75% { transform: rotate(-5deg) scale(1); }
+  }
+  .cb-float.anim-spin { animation: cbAnimSpin 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .cb-float.anim-jump { animation: cbAnimJump 0.6s ease-in-out forwards; }
+  .cb-float.anim-wobble { animation: cbAnimWobble 0.7s ease-in-out forwards; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -226,9 +403,9 @@
     </nav>
     <header>
       <div style="flex: 1 1 500px; min-width: 0;">
-        <p class="eyebrow">CBMPE · regularização e AVCB</p>
-        <h1>Checklist documental</h1>
-        <p class="subtitle">Lista consolidada de documentos e assistente de enquadramento por ocupação. O tipo A–Q identifica a ocupação; o nível de risco permanece informado manualmente e o pacote documental é montado pelas regras de risco, ocupação, características do estabelecimento e configurações do processo.</p>
+        <p class="eyebrow">AVCB Pernambuco · Sá Moraes Engenharia</p>
+        <h1>Descubra o que falta pro seu AVCB</h1>
+        <p class="subtitle">Responda algumas perguntas rápidas sobre o seu imóvel e receba, na hora, a lista exata de documentos que faltam para regularizar o AVCB no CBMPE — sem termos técnicos, direto ao ponto.</p>
       </div>
       <div class="admin-only" id="dbStatusRow" style="position:absolute; left:50%; top:0; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; text-align:center; z-index:1;">
         <div class="file-status" id="dbStatus">Conectando ao Supabase...</div>
@@ -300,6 +477,7 @@
       </div>
     </div>
 
+    <div id="chatFocusScrim" aria-hidden="true"></div>
     <div id="chatbotPanel">
       <button id="chatFullscreenClose" type="button" aria-label="Fechar tela cheia" title="Voltar ao tamanho normal">&times;</button>
       <div class="chat-progress-ruler" id="chatProgressRuler">
@@ -3862,7 +4040,7 @@ var qrcode = function() {
       const panel = document.getElementById("chatbotPanel");
       const container = panel ? panel.querySelector(".chat-container") : null;
       if (!panel || !container || getComputedStyle(panel).display === "none") return;
-      if (panel.classList.contains("chat-fullscreen")) return;
+      if (window.matchMedia("(max-width: 720px)").matches && !document.body.classList.contains("chat-collapsed")) return;
       const shellEl = document.querySelector(".shell");
       const shellPadBottom = shellEl ? (parseFloat(getComputedStyle(shellEl).paddingBottom) || 0) : 0;
       const rect = container.getBoundingClientRect();
@@ -3897,70 +4075,123 @@ var qrcode = function() {
     const chatRestartBtn = $("#chatRestartBtn");
     const chatInputArea = $("#chatInputArea");
 
-    // Tela cheia no mobile: ao tocar na caixa de resposta, o chatbot expande
-    // para ocupar a tela toda (animação de 2s), com um X para fechar ou usando
-    // o botão de voltar do próprio celular.
+    // Modo "espiar" no mobile: por padrão (CSS acima) o chat já nasce em tela
+    // cheia — só ele tem espaço na tela. O X revela o cabeçalho (o chat
+    // encolhe); tocar no campo de texto de novo volta para a tela cheia.
+    // A animação usa a técnica FLIP: mede a posição do painel antes/depois
+    // da troca de estado e anima só um "transform" (translate + scale) entre
+    // as duas — nunca top/left/width/height, que forçariam o navegador a
+    // recalcular o layout a cada frame.
     const chatbotPanel = document.getElementById("chatbotPanel");
-    const chatFullscreenMql = window.matchMedia("(max-width: 720px)");
-    let chatFullscreenPushedState = false;
-    function enterChatFullscreen() {
-      if (!chatFullscreenMql.matches) return;
-      if (chatbotPanel.classList.contains("chat-fullscreen")) return;
-      const rect = chatbotPanel.getBoundingClientRect();
-      chatbotPanel.style.position = "fixed";
-      chatbotPanel.style.top = rect.top + "px";
-      chatbotPanel.style.left = rect.left + "px";
-      chatbotPanel.style.width = rect.width + "px";
-      chatbotPanel.style.height = rect.height + "px";
-      chatbotPanel.style.margin = "0";
-      chatbotPanel.style.zIndex = "999";
-      // força o navegador a aplicar os valores acima antes de trocar para os finais,
-      // para que a transição CSS (2s) realmente anime do tamanho atual até a tela cheia
-      chatbotPanel.getBoundingClientRect();
-      chatbotPanel.classList.add("chat-fullscreen");
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          chatbotPanel.style.top = "0px";
-          chatbotPanel.style.left = "0px";
-          chatbotPanel.style.width = "100vw";
-          chatbotPanel.style.height = "100vh";
-        });
-      });
-      try {
-        history.pushState({ chatFullscreen: true }, "");
-        chatFullscreenPushedState = true;
-      } catch (e) {}
+
+    function isMobileChatLayout() {
+      return window.matchMedia("(max-width: 720px)").matches;
     }
-    function exitChatFullscreen(fromPopstate) {
-      if (!chatbotPanel.classList.contains("chat-fullscreen")) return;
-      chatbotPanel.classList.remove("chat-fullscreen");
-      chatbotPanel.style.position = "";
-      chatbotPanel.style.top = "";
-      chatbotPanel.style.left = "";
-      chatbotPanel.style.width = "";
-      chatbotPanel.style.height = "";
-      chatbotPanel.style.margin = "";
-      chatbotPanel.style.zIndex = "";
-      fitChatbotBox();
-      if (!fromPopstate && chatFullscreenPushedState) {
-        chatFullscreenPushedState = false;
+
+    const reduceMotionMql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let chatPanelActiveAnimation = null;
+
+    function animatePanelStateChange(applyStateChange, durationMs) {
+      const duration = durationMs || 420;
+      if (!chatbotPanel) { applyStateChange(); return; }
+      if (chatPanelActiveAnimation) { chatPanelActiveAnimation.cancel(); chatPanelActiveAnimation = null; }
+      const first = chatbotPanel.getBoundingClientRect();
+      applyStateChange();
+      if (reduceMotionMql.matches) return;
+      const last = chatbotPanel.getBoundingClientRect();
+      if (!last.width || !last.height) return;
+      const dx = first.left - last.left;
+      const dy = first.top - last.top;
+      const sx = first.width / last.width;
+      const sy = first.height / last.height;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.001 && Math.abs(sy - 1) < 0.001) return;
+      const easing = duration > 1000 ? "cubic-bezier(.45,0,.15,1)" : "cubic-bezier(.16,1,.3,1)";
+      chatPanelActiveAnimation = chatbotPanel.animate(
+        [
+          { transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})` },
+          { transform: "translate(0,0) scale(1,1)" },
+        ],
+        { duration: duration, easing: easing, fill: "both" }
+      );
+      chatPanelActiveAnimation.finished
+        .catch(() => {})
+        .then(() => {
+          if (chatPanelActiveAnimation) {
+            chatPanelActiveAnimation.cancel();
+            chatPanelActiveAnimation = null;
+          }
+        });
+    }
+
+    let chatPeekPushedState = false;
+
+    function expandChatPanel(fromPopstate) {
+      if (!document.body.classList.contains("chat-collapsed")) return;
+      animatePanelStateChange(() => document.body.classList.remove("chat-collapsed"));
+      if (!fromPopstate && chatPeekPushedState) {
+        chatPeekPushedState = false;
         try { history.back(); } catch (e) {}
       } else {
-        chatFullscreenPushedState = false;
+        chatPeekPushedState = false;
       }
     }
+    function peekHeader() {
+      if (!isMobileChatLayout()) return;
+      if (document.body.classList.contains("chat-collapsed")) return;
+      animatePanelStateChange(() => document.body.classList.add("chat-collapsed"));
+      fitChatbotBox();
+      try {
+        history.pushState({ chatPeek: true }, "");
+        chatPeekPushedState = true;
+      } catch (e) {}
+    }
     window.addEventListener("popstate", () => {
-      if (chatbotPanel.classList.contains("chat-fullscreen")) {
-        exitChatFullscreen(true);
+      if (document.body.classList.contains("chat-collapsed")) {
+        expandChatPanel(true);
       }
     });
+    // Centro real do painel (em % da viewport) para a vinheta radial nascer
+    // exatamente onde o chatbot está, mesmo com scroll — recalculado no fim
+    // do redimensionamento (2.4s), já que ele muda de tamanho junto.
+    const chatFocusScrim = document.getElementById("chatFocusScrim");
+    let chatFocusOriginTimer = null;
+    function updateFocusScrimOrigin() {
+      if (!chatbotPanel || !chatFocusScrim) return;
+      const rect = chatbotPanel.getBoundingClientRect();
+      const x = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+      const y = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+      chatFocusScrim.style.setProperty("--focus-x", x + "%");
+      chatFocusScrim.style.setProperty("--focus-y", y + "%");
+    }
+    function scheduleFocusScrimOriginUpdate() {
+      updateFocusScrimOrigin();
+      clearTimeout(chatFocusOriginTimer);
+      chatFocusOriginTimer = setTimeout(updateFocusScrimOrigin, CHAT_FOCUS_ANIM_MS + 60);
+    }
+    window.addEventListener("resize", () => {
+      if (document.body.classList.contains("chat-focus")) updateFocusScrimOrigin();
+    });
+    const CHAT_FOCUS_ANIM_MS = 3000;
+    function enterChatFocus() {
+      if (isMobileChatLayout()) return;
+      if (document.body.classList.contains("chat-focus")) return;
+      animatePanelStateChange(() => document.body.classList.add("chat-focus"), CHAT_FOCUS_ANIM_MS);
+      scheduleFocusScrimOriginUpdate();
+    }
+    function exitChatFocus() {
+      if (!document.body.classList.contains("chat-focus")) return;
+      animatePanelStateChange(() => document.body.classList.remove("chat-focus"), CHAT_FOCUS_ANIM_MS);
+      clearTimeout(chatFocusOriginTimer);
+    }
     if (chatInput) {
-      chatInput.addEventListener("focus", enterChatFullscreen);
-      chatInput.addEventListener("click", enterChatFullscreen);
+      chatInput.addEventListener("focus", () => expandChatPanel(false));
+      chatInput.addEventListener("click", () => expandChatPanel(false));
+      chatInput.addEventListener("focus", enterChatFocus);
+      chatInput.addEventListener("blur", exitChatFocus);
     }
     const chatFullscreenCloseBtn = $("#chatFullscreenClose");
     if (chatFullscreenCloseBtn) {
-      chatFullscreenCloseBtn.addEventListener("click", () => exitChatFullscreen(false));
+      chatFullscreenCloseBtn.addEventListener("click", peekHeader);
     }
     let chatMultiSelectConfirm = null; // quando definido, Enviar/Enter confirma uma seleção múltipla em vez de responder normalmente
     let chatCurrentStepMsgCountBefore = 0; // nº de bolhas de chat antes da pergunta atual começar (para o "Voltar")
@@ -5736,6 +5967,76 @@ chatInput?.addEventListener("input", (e) => {
       askRisk();
     }
   }
+})();
+</script>
+<a class="wa-float" href="https://wa.me/5581997460029?text=Ol%C3%A1!%20Estou%20no%20checklist%20e%20preciso%20de%20ajuda%20com%20o%20AVCB." aria-label="Falar no WhatsApp">
+  <img src="webp/whatsapp-icon.webp" alt="" width="56" height="56" loading="lazy">
+</a>
+
+<div class="cb-float-anim">
+  <div class="cb-bubble" id="cb-bubble2" aria-hidden="true">
+    <div id="cb-bubble-text2"></div>
+  </div>
+  <button type="button" class="cb-float" id="cb-float-btn2" aria-label="Assistente virtual">
+    <img src="webp/chatbot-avcb-icon.webp" alt="" width="56" height="56" loading="lazy">
+  </button>
+</div>
+
+<script>
+(function(){
+  // Ícone flutuante do assistente aqui dentro do checklist: frases e clique
+  // diferentes do botão equivalente no site principal (placeholder por ora,
+  // aguardando definição do comportamento final). Por padrão, clicar nele
+  // só leva o foco para o campo de texto do chat (aciona o modo de foco
+  // já existente), já que a pessoa já está na tela do chatbot.
+  var cbBubble = document.getElementById('cb-bubble2');
+  var cbBubbleText = document.getElementById('cb-bubble-text2');
+  var cbFloatBtn = document.getElementById('cb-float-btn2');
+  if (!cbBubble || !cbBubbleText || !cbFloatBtn) return;
+
+  var phrases = [
+    "Ainda não te conheço direito — vamos continuar por ali embaixo?",
+    "Se travar em alguma pergunta, é só voltar pro chat que eu te ajudo.",
+    "Faltam só alguns cliques pra saber tudo que você precisa.",
+    "Prefere falar com uma pessoa? O WhatsApp também tá aqui do lado.",
+    "Bora terminar seu checklist? Tô bem aqui.",
+    "Alguma dúvida enquanto responde? Clica aqui.",
+  ];
+  var animClasses = ['anim-spin', 'anim-jump', 'anim-wobble'];
+  var currentTimer = null;
+
+  function triggerChatbotSequence() {
+    var randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    var randomAnim = animClasses[Math.floor(Math.random() * animClasses.length)];
+    cbFloatBtn.classList.remove('anim-spin', 'anim-jump', 'anim-wobble');
+    void cbFloatBtn.offsetWidth;
+    cbFloatBtn.classList.add(randomAnim);
+    setTimeout(function() {
+      cbFloatBtn.classList.remove(randomAnim);
+      var formattedPhrase = randomPhrase.replace(/([?!.])\s+/g, '$1<br>');
+      cbBubbleText.innerHTML = formattedPhrase;
+      cbBubble.classList.add('show');
+      setTimeout(function() {
+        cbBubble.classList.remove('show');
+        var currentSeconds = new Date().getSeconds();
+        var nextDelay = 0;
+        if (currentSeconds % 7 === 0) { nextDelay = 20000; }
+        else if (currentSeconds % 2 === 0) { nextDelay = 10000; }
+        else { nextDelay = 15000; }
+        currentTimer = setTimeout(triggerChatbotSequence, nextDelay);
+      }, 7000);
+    }, 650);
+  }
+  currentTimer = setTimeout(triggerChatbotSequence, 3000);
+  cbFloatBtn.addEventListener('mouseenter', function() {
+    cbBubble.classList.remove('show');
+  });
+
+  cbFloatBtn.addEventListener('click', function(){
+    cbBubble.classList.remove('show');
+    var input = document.getElementById('chatInput');
+    if (input) { input.focus(); }
+  });
 })();
 </script>
 </body>
