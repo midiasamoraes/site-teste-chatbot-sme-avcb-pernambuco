@@ -73,6 +73,8 @@
     .toast{position:fixed;left:50%;top:50%;z-index:300;padding:20px 28px;border-radius:16px;background:#0a2138;color:#fff;box-shadow:var(--shadow);font-size:1.05rem;font-weight:650;line-height:1.4;text-align:center;max-width:min(90vw,440px);opacity:0;transform:translate(-50%,-50%) scale(.94);pointer-events:none;transition:opacity 2s ease, transform 2s ease}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
     .admin-only { display: none !important; }
     .chat-container { position: relative; border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; height: 65vh; min-height: 400px; margin-top: 16px; }
+    /* Só existe/aparece no mobile (ver @media max-width:720px mais abaixo) — sem essa regra base, um navegador em desktop (que não casa com aquele media query) renderia com o display "block" padrão do navegador. */
+    .chat-mobile-header { display: none; }
     .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
     .chat-messages::before { content: ""; flex: 1 1 auto; }
     .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; animation: fadeIn 0.3s ease-out; }
@@ -120,13 +122,63 @@
         background: #fff;
         overflow: hidden;
         transform-origin: center;
+        display: flex;
+        flex-direction: column;
       }
       #chatbotPanel .chat-container {
-        height: 100% !important;
+        flex: 1 1 auto;
+        height: auto !important;
         min-height: 0 !important;
         border-radius: 0;
       }
       #chatFullscreenClose { display: flex; }
+
+      /* Cabeçalho mobile: comporta o X de fechar a tela cheia (que continua com
+         position:fixed no canto, mas agora "encaixado" visualmente dentro dessa
+         barra) e uma versão enxuta da barra de progresso do questionário — sem
+         as bolinhas/rótulos de etapa ("Risco", "Estabelecimento" etc.) que a
+         versão desktop tem, só o preenchimento avançando de 0% a 100%. Some
+         igual ao chatFullscreenClose quando o chat está "recolhido" (peek), e só
+         aparece de fato quando o questionário começa a acompanhar progresso
+         (mesmo gatilho de showProgressRuler()/hideProgressRuler() do desktop). */
+      .chat-mobile-header {
+        display: none;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 66px;
+        padding: 0 60px 0 16px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+      }
+      body:not(.chat-collapsed) .chat-mobile-header.revealed { display: flex; }
+      .chat-mobile-header-title {
+        font-size: .66rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+        flex: 0 0 auto;
+      }
+      .chat-mobile-progress-track {
+        position: relative;
+        flex: 1 1 auto;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--line);
+      }
+      .chat-mobile-progress-fill {
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 0%;
+        border-radius: 999px;
+        background: var(--gold);
+        transition: width .5s ease;
+      }
+      /* A régua de progresso "completa" (com bolinhas/rótulos de etapa) é só pra
+         desktop — no mobile ela é substituída pela barra enxuta do .chat-mobile-header. */
+      .chat-progress-ruler { display: none !important; }
       body.chat-focus #chatFullscreenClose { display: flex; }
       body.chat-collapsed #chatbotPanel {
         position: static;
@@ -152,9 +204,17 @@
     body:not(.chat-transitioning) .chat-bubble,
     body:not(.chat-transitioning) .chat-bubble * { transition: color 0.6s ease 0.1s; }
 
-    /* Esconde os balões de diálogo inteiramente na versão mobile (mesmo quando o chat não está finalizado) */
+    /* Esconde os balões de diálogo na versão mobile (mesmo quando o chat não está
+       finalizado) — mas com visibility, não display:none. .chat-messages é o único
+       filho do flex column com "flex:1" (ver .chat-messages acima): é ele quem empurra
+       o campo de texto (.chat-input-area) pro rodapé da caixa. display:none tira o
+       elemento do fluxo inteiramente, e sem esse "flex:1" sobrando ninguém mais empurra
+       o campo pra baixo — ele "sobe" e fica colado no topo da tela cheia do mobile, com
+       um vazio enorme embaixo (e o ícone flutuante do assistente, reposicionado pro topo
+       nesse estado, passa a cobrir o campo). Com visibility:hidden o espaço continua
+       reservado (os balões continuam invisíveis e não clicáveis), só que no lugar certo. */
     @media (max-width: 720px) {
-      body:not(.chat-finished) .chat-messages { display: none !important; }
+      body:not(.chat-finished) .chat-messages { visibility: hidden !important; pointer-events: none !important; }
     }
 
     /* Desktop: ao focar o campo de texto, o resto da página perde luz aos
@@ -360,9 +420,10 @@
     }
     body:not(.chat-collapsed) .cb-float-anim {
       bottom: calc(100vh - 68px) !important;
-      right: 16px !important;
+      left: 16px !important;
+      right: auto !important;
       animation: none !important;
-      transition: bottom 0.4s ease, right 0.4s ease;
+      transition: bottom 0.4s ease, left 0.4s ease;
     }
     body:not(.chat-collapsed) .cb-float {
       width: 48px;
@@ -552,6 +613,12 @@
     <div id="chatFocusScrim" aria-hidden="true"></div>
     <button id="chatFullscreenClose" type="button" aria-label="Fechar tela cheia" title="Voltar ao tamanho normal">&times;</button>
     <div id="chatbotPanel">
+      <div class="chat-mobile-header" id="chatMobileHeader">
+        <span class="chat-mobile-header-title">Progresso do questionário</span>
+        <div class="chat-mobile-progress-track">
+          <div class="chat-mobile-progress-fill" id="chatMobileProgressFill"></div>
+        </div>
+      </div>
       <div class="chat-progress-ruler" id="chatProgressRuler">
         <div class="chat-progress-ruler-top">
           <span class="chat-progress-ruler-title">Progresso do questionário</span>
@@ -677,11 +744,11 @@
     </details>
     <details class="conditions" style="margin-bottom: 8px;">
             <summary style="font-size: 0.82rem; color: var(--muted); font-weight: normal;"><span>Referência para enquadramento como Risco II</span><span class="chev">⌄</span></summary>
-            <div class="warning-note">Para a declaração de Risco II, a NT nº 1.01 apresenta critérios cumulativos: área construída até 750 m²; até 3 pavimentos; reunião de público com até 100 pessoas; hotéis/pousadas/pensões com até 40 leitos; líquidos combustíveis/inflamáveis até 1.000 L; não ser hospital/local com pacientes de mobilidade dificultada; GLP até 190 kg; não comercializar/revender GLP; não utilizar/armazenar/comercializar outros gases combustíveis; não possuir produtos perigosos listados; e não ser evento temporário. Se a ocupação com menos de 750 m² estiver inserida em condomínio com área superior a 750 m², o próprio Anexo C indica enquadramento como Risco III.</div>
+            <div class="warning-note">Para a declaração de Risco II, a NT nº 1.01 apresenta critérios cumulativos: área construída até 930 m²; até 3 pavimentos; reunião de público com até 100 pessoas; hotéis/pousadas/pensões com até 40 leitos; líquidos combustíveis/inflamáveis até 1.000 L; não ser hospital/local com pacientes de mobilidade dificultada; GLP até 190 kg; não comercializar/revender GLP; não utilizar/armazenar/comercializar outros gases combustíveis; não possuir produtos perigosos listados; e não ser evento temporário. Se a ocupação com menos de 930 m² estiver inserida em condomínio com área superior a 930 m² (Art. 6º, I do Decreto Estadual nº 52.005/2021), o enquadramento passa a ser Risco III — salvo a exceção do Art. 7º, §3º para unidade térrea independente.</div>
           </details>
     <details class="conditions" style="margin-bottom: 14px;">
       <summary style="font-size: 0.82rem; color: var(--muted); font-weight: normal;"><span>Referência para enquadramento como Risco III</span><span class="chev">⌄</span></summary>
-      <div class="warning-note">De acordo com a NT nº 1.01, o Risco III (Alto) aplica-se às edificações que não se enquadram nos limites do Risco I ou II. Isso inclui, por exemplo: área superior a 750m² ou mais de 3 andares; lotação acima de 100 pessoas; armazenamento/revenda de produtos perigosos, líquidos inflamáveis (> 1.000L) ou GLP (> 190kg); eventos temporários e hospitais. Nestes casos, é obrigatória a aprovação prévia do Projeto de Segurança Contra Incêndio e Pânico (PCI) e processo de vistoria para emissão do AVCB.</div>
+      <div class="warning-note">De acordo com a NT nº 1.01, o Risco III (Alto) aplica-se às edificações que não se enquadram nos limites do Risco I ou II. Isso inclui, por exemplo: área superior a 930m² ou mais de 3 andares; lotação acima de 100 pessoas; armazenamento/revenda de produtos perigosos, líquidos inflamáveis (> 1.000L) ou GLP (> 190kg); eventos temporários e hospitais. Nestes casos, é obrigatória a aprovação prévia do Projeto de Segurança Contra Incêndio e Pânico (PCI) e processo de vistoria para emissão do AVCB.</div>
     </details>
 
     <details class="groups-section" id="groupsAccordion">
@@ -3422,11 +3489,12 @@ var qrcode = function() {
 
     const riskConditionDefs = [
       {id:"noneRisk", label:"Nenhum", none:true},
-      {id:"isRisco1", label:"O seu imóvel é uma residência unifamiliar (casa isolada) ou exerce uma atividade já classificada como Risco I?", note:"Dispensado de AVCB, elegível para DDLCB.", exclusiveWith:["areaAlta","gasAlto","lotacaoAlta","eventoHosp"]},
-      {id:"areaAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Área construída > 750m²</li><li>Inserido em condomínio > 750m²</li><li>Mais de 3 andares</li></ul>", exclusiveWith:["isRisco1"]},
-      {id:"gasAlto", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Armazena mais de 190kg de GLP</li><li>Revende GLP</li><li>Possui líquidos inflamáveis (>1000L)</li><li>Outros gases e produtos perigosos</li></ul>", exclusiveWith:["isRisco1"]},
-      {id:"lotacaoAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Local comporta mais de 100 pessoas</li><li>Hotel ou pousada com mais de 40 leitos</li></ul>", exclusiveWith:["isRisco1"], relevantTypes:["H","D"]},
-      {id:"eventoHosp", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Funciona como evento temporário</li><li>Hospital/clínica com pacientes com restrição de mobilidade</li></ul>", exclusiveWith:["isRisco1"]}
+      {id:"isRisco1", label:"O seu imóvel é uma residência unifamiliar (casa isolada) ou exerce uma atividade já classificada como Risco I?", note:"Dispensado de AVCB, elegível para DDLCB.", exclusiveWith:["areaAlta","gasAlto","lotacaoAlta","eventoHosp","tendaToldo"]},
+      {id:"tendaToldo", label:"O seu estabelecimento funciona em local fixo, mas sem endereço formal — como uma tenda, toldo, barraca ou estrutura similar — com área de apoio de até 200m²?", note:"Dispensado de AVCB, elegível para DDLCB (Art. 5º, IV do Decreto Estadual nº 52.005/2021).", exclusiveWith:["isRisco1","areaAlta","gasAlto","lotacaoAlta","eventoHosp"]},
+      {id:"areaAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Área construída > 930m²</li><li>Inserido em condomínio > 930m²</li><li>Mais de 3 andares</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]},
+      {id:"gasAlto", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Armazena mais de 190kg de GLP</li><li>Revende GLP</li><li>Possui líquidos inflamáveis (>1000L)</li><li>Outros gases e produtos perigosos</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]},
+      {id:"lotacaoAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Local comporta mais de 100 pessoas</li><li>Hotel ou pousada com mais de 40 leitos</li></ul>", exclusiveWith:["isRisco1","tendaToldo"], relevantTypes:["H","D"]},
+      {id:"eventoHosp", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Funciona como evento temporário</li><li>Hospital/clínica com pacientes com restrição de mobilidade</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]}
     ];
 
     const establishmentConditionDefs = [
@@ -3436,6 +3504,7 @@ var qrcode = function() {
       {id:"procuracao", group:"Titularidade do processo", label:"O requerimento do seu processo de AVCB será feito por um procurador ou preposto (alguém que representa você ou a empresa)?"},
       {id:"condominio", group:"Estrutura do imóvel / órgão público", label:"O seu estabelecimento está inserido em um condomínio, shopping, galeria ou edifício empresarial?", excludeTypes:["A"]},
       {id:"condominioPci", group:"Estrutura do imóvel / órgão público", label:"A sua unidade está totalmente coberta pelo PCI (Plano de Segurança Contra Incêndio) do condomínio?", dependsOn:"condominio", onlyRisk:"R3", note:"No Risco III, libera memorial de incêndio e planta do PCI do condomínio."},
+      {id:"unidadeTerrea", group:"Estrutura do imóvel / órgão público", label:"Sua unidade fica exclusivamente no pavimento térreo, não compartilha os sistemas de prevenção contra incêndio com o prédio principal, não tem acesso às áreas comuns do prédio e tem saída própria direto para a rua?", dependsOn:"condominio", onlyRisk:"R3", note:"Exceção do Art. 7º, §3º do Decreto Estadual nº 52.005/2021: unidade térrea independente com até 930m², cumprindo estas condições, é classificada como Risco II mesmo que o condomínio como um todo seja maior."},
       {id:"publico", group:"Estrutura do imóvel / órgão público", label:"O seu estabelecimento é um órgão público?"},
       {id:"publicoLocado", group:"Estrutura do imóvel / órgão público", label:"O imóvel do órgão público é alugado (locado), e não próprio?", dependsOn:"publico"},
       {id:"historico", group:"Estrutura do imóvel / órgão público", label:"O seu imóvel é considerado histórico ou tombado?", note:"A certidão/declaração cultural será incluída se houver inviabilidade técnica."},
@@ -3726,13 +3795,19 @@ var qrcode = function() {
       return establishmentConditionDefs.filter(c=>c.suggestFor?.includes(est.label)).map(c=>c.id);
     }
     function syncConditionalState(){
-      if(state.conditions.isRisco1) state.risk = "R1";
-      else if(state.conditions.areaAlta || state.conditions.gasAlto || state.conditions.lotacaoAlta || state.conditions.eventoHosp) state.risk = "R3";
+      if(state.conditions.isRisco1 || state.conditions.tendaToldo) state.risk = "R1";
+      else if(state.conditions.gasAlto || state.conditions.lotacaoAlta || state.conditions.eventoHosp) state.risk = "R3";
+      else if(state.conditions.areaAlta) {
+        // Exceção do Art. 7º, §3º do Decreto 52.005/2021: unidade térrea independente
+        // dentro de edificação principal (condomínio/shopping/galeria) permanece Risco II.
+        state.risk = (state.conditions.condominio && state.conditions.unidadeTerrea) ? "R2" : "R3";
+      }
       else if(state.conditions.noneRisk) state.risk = "R2";
       else state.risk = "";
 
       if(!state.conditions.publico) state.conditions.publicoLocado=false;
       if(!state.conditions.condominio || state.risk!=="R3") state.conditions.condominioPci=false;
+      if(!state.conditions.condominio) state.conditions.unidadeTerrea=false;
       if(!state.conditions.termo) state.conditions.termoProjetoPendente=false;
       if(!state.conditions.evento) state.conditions.eventoPermanente=false;
       const auto=autoConditionIdsForEstablishment();
@@ -3770,7 +3845,7 @@ var qrcode = function() {
             const none=defs.find(x=>x.none);if(input.checked && none)state.conditions[none.id]=false;
             if(input.checked && c.exclusiveWith) c.exclusiveWith.forEach(id=>state.conditions[id]=false);
             if(c.id==="publico" && !input.checked)state.conditions.publicoLocado=false;
-            if(c.id==="condominio" && !input.checked)state.conditions.condominioPci=false;
+            if(c.id==="condominio" && !input.checked){state.conditions.condominioPci=false; state.conditions.unidadeTerrea=false;}
             if(c.id==="termo" && !input.checked)state.conditions.termoProjetoPendente=false;
             if(c.id==="evento" && !input.checked)state.conditions.eventoPermanente=false;
           }
@@ -4788,7 +4863,7 @@ var qrcode = function() {
     // ---- Nível de risco (NT 1.01): sequência de perguntas com possibilidade de voltar ----
     const CHAT_RISK_ORDER = ["areaAlta", "gasAlto", "lotacaoAlta", "eventoHosp"];
     const RISK_QUESTION_TEXT = {
-      areaAlta: "Responda Sim se o seu estabelecimento corresponde a um dos três casos abaixo:<br>A área construída é <strong>maior que 750m²</strong>?<br>Ou está inserida em condomínio maior que <strong>750m²</strong>?<br>Ou possui <strong>mais de 3 andares</strong>?",
+      areaAlta: "Responda Sim se o seu estabelecimento corresponde a um dos três casos abaixo:<br>A área construída é <strong>maior que 930m²</strong>?<br>Ou está inserida em condomínio maior que <strong>930m²</strong>?<br>Ou possui <strong>mais de 3 andares</strong>?",
       gasAlto: "O local armazena <strong>mais de 190kg de gás (GLP)</strong>, revende gás, ou possui <strong>produtos perigosos, líquidos inflamáveis (acima de 1000L) ou outros gases</strong>?",
       lotacaoAlta: "O local comporta <strong>mais de 100 pessoas</strong>? Ou, no caso de hotel ou pousada, possui <strong>mais de 40 leitos</strong>?",
       eventoHosp: "O local funciona como <strong>evento temporário</strong> ou é um <strong>hospital/clínica</strong> com pacientes com dificuldade de locomoção?"
@@ -4825,7 +4900,7 @@ var qrcode = function() {
       if (_epoch !== chatEpoch) return;
 
       if (est && est.type !== "A") {
-        advanceRisk();
+        askTendaToldo(_epoch);
         return;
       }
 
@@ -4838,6 +4913,40 @@ var qrcode = function() {
         await addChatBubble("Sim", false);
         await addChatBubble("Dispensado de AVCB.<br>Se houver interesse, você pode solicitar uma DDLCB (Declaração de Dispensa de Licenciamento do Corpo de Bombeiros), são necessários:<br><ul style='margin:0; padding-left:20px'><li>Documento de identidade com foto</li><li>CNPJ</li><li>Requerimento para emissão da DDLCB (através de um responsável técnico da Sá Moraes Engenharia).</li></ul>");
         state.conditions.isRisco1 = true;
+        syncConditionalState();
+        persist(); renderAll();
+        hideProgressRuler();
+        askToContact("Requerimento para emissão da DDLCB");
+      });
+      addChatOption("Não", async () => {
+        clearChatOptions();
+        await addChatBubble("Não", false);
+        stageAnsweredCount.risk = Math.max(stageAnsweredCount.risk, 1);
+        renderAll();
+        askTendaToldo(_epoch);
+      });
+    }
+
+    // Caminho de Risco I do Art. 5º, IV do Decreto Estadual nº 52.005/2021: atividade em
+    // local fixo sem endereço formal (tenda/toldo/barraca ou similar) com até 200m² de área
+    // de apoio. Perguntada em complemento à condição de "residência unifamiliar isolada" —
+    // nunca a substitui, são dois caminhos legais independentes para o mesmo Risco I.
+    async function askTendaToldo(_epoch) {
+      if (_epoch !== chatEpoch) return;
+      chatState = "RISK";
+      chatInput.disabled = false;
+      chatInput.value = "";
+      chatInput.placeholder = "Digite Sim ou Não, ou use as setas...";
+      chatInput.focus();
+      clearChatOptions();
+      markStepStart();
+      await addChatBubble("O seu estabelecimento funciona em local fixo, mas sem endereço formal — como uma tenda, toldo, barraca ou estrutura similar — com área de apoio de até <strong>200m²</strong>?");
+      if (_epoch !== chatEpoch) return;
+      addChatOption("Sim", async () => {
+        clearChatOptions();
+        await addChatBubble("Sim", false);
+        await addChatBubble("Dispensado de AVCB.<br>Se houver interesse, você pode solicitar uma DDLCB (Declaração de Dispensa de Licenciamento do Corpo de Bombeiros), são necessários:<br><ul style=\'margin:0; padding-left:20px\'><li>Documento de identidade com foto</li><li>CNPJ</li><li>Requerimento para emissão da DDLCB (através de um responsável técnico da Sá Moraes Engenharia).</li></ul>");
+        state.conditions.tendaToldo = true;
         syncConditionalState();
         persist(); renderAll();
         hideProgressRuler();
@@ -4906,7 +5015,7 @@ var qrcode = function() {
     // instalações físicas (perguntadas em bloco único) e por fim as configurações do processo.
     const CHAT_COND_ORDER = [
       "evento", "eventoPermanente",
-      "publico", "publicoLocado", "pessoaFisica", "mei", "condominio", "condominioPci", "procuracao", "historico",
+      "publico", "publicoLocado", "pessoaFisica", "mei", "condominio", "unidadeTerrea", "condominioPci", "procuracao", "historico",
       "__INSTALACOES__",
       "__GNV__", "casaNoturna", "palco", "trio",
       "alteracao"
@@ -4919,12 +5028,12 @@ var qrcode = function() {
     // temporária (área delimitada, arenas, estandes, palcos, arquibancadas), não como o
     // prédio permanente descrito por essas perguntas. Só afeta a sequência do chatbot — o
     // Formulário continua mostrando e usando todas as perguntas normalmente.
-    const CHAT_SKIP_FOR_TEMP_EVENT = new Set(["condominio", "condominioPci", "historico", "__INSTALACOES__", "__GNV__", "casaNoturna", "palco", "trio"]);
+    const CHAT_SKIP_FOR_TEMP_EVENT = new Set(["condominio", "condominioPci", "unidadeTerrea", "historico", "__INSTALACOES__", "__GNV__", "casaNoturna", "palco", "trio"]);
     // GNV e "posto de abastecimento de GNV" eram duas perguntas sequenciais e redundantes
     // (a segunda só fazia sentido depois de "sim" na primeira). Agora é uma única pergunta
     // de múltipla escolha que já define as duas condições de uma vez.
     const INSTALL_BATCH_IDS = ["camaraFria", "elevador", "gerador", "spda", "glp", "gn"];
-    const CHAT_STRUCTURAL_IDS = ["evento", "eventoPermanente", "pessoaFisica", "mei", "publico", "publicoLocado", "condominio", "condominioPci", "procuracao", "historico"];
+    const CHAT_STRUCTURAL_IDS = ["evento", "eventoPermanente", "pessoaFisica", "mei", "publico", "publicoLocado", "condominio", "unidadeTerrea", "condominioPci", "procuracao", "historico"];
     const CHAT_INSTALL_IDS = ["__INSTALACOES__", "__GNV__", "casaNoturna", "palco", "trio"];
 
     // ---- Barra de progresso (régua) + mensagens de bloco + estimativa de tempo ----
@@ -4980,8 +5089,10 @@ var qrcode = function() {
     function renderProgressRuler() {
       const fill = $("#chatProgressFill");
       const pctLabel = $("#chatProgressPercent");
-      if (!fill) return;
       const { percent } = computeQuestionnaireProgress();
+      const mobileFill = $("#chatMobileProgressFill");
+      if (mobileFill) mobileFill.style.width = percent + "%";
+      if (!fill) return;
       fill.style.width = percent + "%";
       if (pctLabel) pctLabel.textContent = percent + "%";
       
@@ -5032,15 +5143,21 @@ var qrcode = function() {
 
     function showProgressRuler() {
       const wrap = $("#chatProgressRuler");
-      if (!wrap) return;
-      wrap.classList.remove("hiding");
-      if (!wrap.classList.contains("revealed")) wrap.classList.add("revealed");
+      if (wrap) {
+        wrap.classList.remove("hiding");
+        if (!wrap.classList.contains("revealed")) wrap.classList.add("revealed");
+      }
+      const mobileHeader = $("#chatMobileHeader");
+      if (mobileHeader) mobileHeader.classList.add("revealed");
     }
     function hideProgressRuler() {
       const wrap = $("#chatProgressRuler");
-      if (!wrap) return;
-      wrap.classList.remove("revealed");
-      wrap.classList.remove("hiding");
+      if (wrap) {
+        wrap.classList.remove("revealed");
+        wrap.classList.remove("hiding");
+      }
+      const mobileHeader = $("#chatMobileHeader");
+      if (mobileHeader) mobileHeader.classList.remove("revealed");
     }
 
     async function addMetaBubble(text) {
@@ -5123,7 +5240,7 @@ var qrcode = function() {
       while (chatCondIndex < CHAT_COND_ORDER.length) {
         const key = CHAT_COND_ORDER[chatCondIndex];
         if (isTempEventNonPermanent && CHAT_SKIP_FOR_TEMP_EVENT.has(key)) {
-          if (key === "condominio" || key === "condominioPci" || key === "historico") state.conditions[key] = false;
+          if (key === "condominio" || key === "condominioPci" || key === "unidadeTerrea" || key === "historico") state.conditions[key] = false;
           chatCondIndex++;
           continue;
         }
