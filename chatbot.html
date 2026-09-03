@@ -3334,7 +3334,7 @@ var qrcode = function() {
       // sem recriá-lo aqui, ela zerava state.risk de volta para "" sempre que a lista de
       // documentos era reconstruída a partir de um código salvo (ou de respostas trazidas de
       // fora), e a lista saía vazia mesmo com o Risco II corretamente decodificado.
-      if (answers.risk === "R2" && !conditions.isRisco1 && !conditions.areaAlta && !conditions.gasAlto && !conditions.lotacaoAlta && !conditions.eventoHosp) {
+      if (answers.risk === "R2" && !conditions.isRisco1 && !conditions.tendaToldo && !conditions.areaPropriaAlta && !conditions.predioGrande && !conditions.gasAlto && !conditions.lotacaoAlta && !conditions.eventoHosp) {
         conditions.noneRisk = true;
       }
       state = { ...savedState, establishment: answers.establishment, risk: answers.risk, conditions };
@@ -3489,9 +3489,10 @@ var qrcode = function() {
 
     const riskConditionDefs = [
       {id:"noneRisk", label:"Nenhum", none:true},
-      {id:"isRisco1", label:"O seu imóvel é uma residência unifamiliar (casa isolada) ou exerce uma atividade já classificada como Risco I?", note:"Dispensado de AVCB, elegível para DDLCB.", exclusiveWith:["areaAlta","gasAlto","lotacaoAlta","eventoHosp","tendaToldo"]},
-      {id:"tendaToldo", label:"O seu estabelecimento funciona em local fixo, mas sem endereço formal — como uma tenda, toldo, barraca ou estrutura similar — com área de apoio de até 200m²?", note:"Dispensado de AVCB, elegível para DDLCB (Art. 5º, IV do Decreto Estadual nº 52.005/2021).", exclusiveWith:["isRisco1","areaAlta","gasAlto","lotacaoAlta","eventoHosp"]},
-      {id:"areaAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Área construída > 930m²</li><li>Inserido em condomínio > 930m²</li><li>Mais de 3 andares</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]},
+      {id:"isRisco1", label:"O seu imóvel é uma residência unifamiliar (casa isolada) ou exerce uma atividade já classificada como Risco I?", note:"Dispensado de AVCB, elegível para DDLCB.", exclusiveWith:["areaPropriaAlta","predioGrande","gasAlto","lotacaoAlta","eventoHosp","tendaToldo"]},
+      {id:"tendaToldo", label:"O seu estabelecimento funciona em local fixo, mas sem endereço formal — como uma tenda, toldo, barraca ou estrutura similar — com área de apoio de até 200m²?", note:"Dispensado de AVCB, elegível para DDLCB (Art. 5º, IV do Decreto Estadual nº 52.005/2021).", exclusiveWith:["isRisco1","areaPropriaAlta","predioGrande","gasAlto","lotacaoAlta","eventoHosp"]},
+      {id:"areaPropriaAlta", label:"Área construída do próprio estabelecimento maior que 930m²", note:"Art. 6º, I do Decreto Estadual nº 52.005/2021 — não se aplica a exceção do Art. 7º, §3º, pois esta exige que a própria unidade tenha até 930m².", exclusiveWith:["isRisco1","tendaToldo"]},
+      {id:"predioGrande", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Inserido em condomínio/edificação principal com área total > 930m²</li><li>Mais de 3 andares</li></ul>", note:"Art. 6º, I do Decreto Estadual nº 52.005/2021 — pode ser afastado pela exceção do Art. 7º, §3º quando a unidade for térrea, independente e com até 930m².", exclusiveWith:["isRisco1","tendaToldo"]},
       {id:"gasAlto", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Armazena mais de 190kg de GLP</li><li>Revende GLP</li><li>Possui líquidos inflamáveis (>1000L)</li><li>Outros gases e produtos perigosos</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]},
       {id:"lotacaoAlta", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Local comporta mais de 100 pessoas</li><li>Hotel ou pousada com mais de 40 leitos</li></ul>", exclusiveWith:["isRisco1","tendaToldo"], relevantTypes:["H","D"]},
       {id:"eventoHosp", label:"<ul style=\'margin:0; padding-left:20px; font-weight:normal;\'><li>Funciona como evento temporário</li><li>Hospital/clínica com pacientes com restrição de mobilidade</li></ul>", exclusiveWith:["isRisco1","tendaToldo"]}
@@ -3797,9 +3798,14 @@ var qrcode = function() {
     function syncConditionalState(){
       if(state.conditions.isRisco1 || state.conditions.tendaToldo) state.risk = "R1";
       else if(state.conditions.gasAlto || state.conditions.lotacaoAlta || state.conditions.eventoHosp) state.risk = "R3";
-      else if(state.conditions.areaAlta) {
-        // Exceção do Art. 7º, §3º do Decreto 52.005/2021: unidade térrea independente
-        // dentro de edificação principal (condomínio/shopping/galeria) permanece Risco II.
+      else if(state.conditions.areaPropriaAlta) {
+        // Área própria acima de 930m²: Risco III incondicional, sem exceção do Art. 7º, §3º
+        // (a exceção exige que a UNIDADE tenha até 930m²).
+        state.risk = "R3";
+      }
+      else if(state.conditions.predioGrande) {
+        // Prédio/condomínio grande ou com mais de 3 andares: Exceção do Art. 7º, §3º do
+        // Decreto 52.005/2021 — unidade térrea independente com até 930m² permanece Risco II.
         state.risk = (state.conditions.condominio && state.conditions.unidadeTerrea) ? "R2" : "R3";
       }
       else if(state.conditions.noneRisk) state.risk = "R2";
@@ -3969,6 +3975,10 @@ var qrcode = function() {
         add(["termo_compromisso_documento","requerimento_tc","proposta_compensatorias","cronograma_tc","declaracao_sem_interdicao","comprovante_ttc"],"Termo de Compromisso","process");
         add(c.termoProjetoPendente?["protocolo_projeto_tc"]:["projeto_instalacao_tc"],c.termoProjetoPendente?"Termo de Compromisso — projeto ainda não aprovado":"Termo de Compromisso — projeto aprovado","process");
         if(c.procuracao)add(["poderes_delegados"],"Termo de Compromisso assinado por representante","process");
+        if(c.termoProjetoPendente){
+          // Enquanto o PCI ainda não foi aprovado, é contraditório exigir o PCI aprovado / memorial do PCI aprovado.
+          remove(["pci_aprovado","memorial_pci"]);
+        }
       }
       if(c.alteracao)add(["requerimento_alteracao","identificacao","ficha_imobiliaria","cnpj","dae20"],"Alteração / correção de AVCB/AR","process");
       if(c.eventoPermanente)add(["avcb_principal"],"Evento temporário em edificação permanente","process");
@@ -4861,9 +4871,10 @@ var qrcode = function() {
     }
 
     // ---- Nível de risco (NT 1.01): sequência de perguntas com possibilidade de voltar ----
-    const CHAT_RISK_ORDER = ["areaAlta", "gasAlto", "lotacaoAlta", "eventoHosp"];
+    const CHAT_RISK_ORDER = ["areaPropriaAlta", "predioGrande", "gasAlto", "lotacaoAlta", "eventoHosp"];
     const RISK_QUESTION_TEXT = {
-      areaAlta: "Responda Sim se o seu estabelecimento corresponde a um dos três casos abaixo:<br>A área construída é <strong>maior que 930m²</strong>?<br>Ou está inserida em condomínio maior que <strong>930m²</strong>?<br>Ou possui <strong>mais de 3 andares</strong>?",
+      areaPropriaAlta: "A área construída do <strong>próprio</strong> estabelecimento é <strong>maior que 930m²</strong>?",
+      predioGrande: "Responda Sim se o seu estabelecimento corresponde a um dos dois casos abaixo:<br>Está inserido em condomínio/edificação principal com área total <strong>maior que 930m²</strong>?<br>Ou o prédio possui <strong>mais de 3 andares</strong>?",
       gasAlto: "O local armazena <strong>mais de 190kg de gás (GLP)</strong>, revende gás, ou possui <strong>produtos perigosos, líquidos inflamáveis (acima de 1000L) ou outros gases</strong>?",
       lotacaoAlta: "O local comporta <strong>mais de 100 pessoas</strong>? Ou, no caso de hotel ou pousada, possui <strong>mais de 40 leitos</strong>?",
       eventoHosp: "O local funciona como <strong>evento temporário</strong> ou é um <strong>hospital/clínica</strong> com pacientes com dificuldade de locomoção?"
